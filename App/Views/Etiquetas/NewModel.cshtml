@@ -1,0 +1,104 @@
+﻿@{
+    ViewData["Title"] = "Novo Modelo de Etiqueta";
+}
+
+<div>
+    <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+</div>
+
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="/Etiquetas/SaveNewModel">
+            <div class="form-group">
+                <label for="nome">Nome</label>
+                <input type="text" class="form-control" id="nome" placeholder="Nome" name="nome" required>
+            </div>
+            <div class="form-group">
+                <label for="Papel">Papel</label>
+                <select class="form-control" id="papel" name="papel" onchange="atualizaTamanhoPapel()">
+                    <option value="0" selected>A4 21,0 x 29,7 cm</option>
+                    <option value="1">Letter 21,6 x 27,9 cm</option>
+                    <option value="2">Outro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="nome">Largura do Papel (cm)</label>
+                <input type="number" class="form-control" id="larguraPapel" placeholder="Largura do Papel (cm)" name="larguraPapel" value="21.0" step="0.01" min="0" readonly required>
+            </div>
+            <div class="form-group">
+                <label for="nome">Altura do Papel (cm)</label>
+                <input type="number" class="form-control" id="alturaPapel" placeholder="Altura do Papel (cm)" name="alturaPapel" value="29.7" step="0.01" min="0" readonly required>
+            </div>
+            <div class="form-group">
+                <label for="nome">Largura da Etiqueta (cm)</label>
+                <input type="number" class="form-control" placeholder="Largura da Etiqueta (cm)" value="0.0" step="0.01" min="0" name="larguraEtiqueta">
+            </div>
+            <div class="form-group">
+                <label for="nome">Altura da Etiqueta</label>
+                <input type="number" class="form-control" placeholder="Altura da Etiqueta" value="0.0" step="0.01" min="0" name="alturaEtiqueta">
+            </div>
+            <div class="form-group">
+                <label for="nome">Espaçamento Horizontal (cm)</label>
+                <input type="number" class="form-control" placeholder="Espaçamento Horizontal (cm)" value="0.0" step="0.01" min="0" name="espacamentoHorizontal">
+            </div>
+            <div class="form-group">
+                <label for="nome">Espaçamento Vertical (cm)</label>
+                <input type="number" class="form-control" placeholder="Espaçamento Vertical (cm)" value="0.0" step="0.01" min="0" name="espacamentoVertical">
+            </div>
+            <div class="form-group">
+                <label for="nome">Margem Esquerda (cm)</label>
+                <input type="number" class="form-control" placeholder="Margem Esquerda (cm)" value="0.0" step="0.01" min="0" name="margemEsquerda">
+            </div>
+            <div class="form-group">
+                <label for="nome">Margem Superio (cm)</label>
+                <input type="number" class="form-control" placeholder="Margem Superio (cm)" value="0.0" step="0.01" min="0" name="margemSuperior">
+            </div>
+            <div class="form-group">
+                <label for="nome">Zoom de Impressão</label>
+                <input type="number" class="form-control" placeholder="Zoom de Impressão" min="0" name="zoomImpressao">
+            </div>
+            <div class="form-group">
+                <label for="nome">Tamanho da Fonte da Escrita</label>
+                <input type="number" class="form-control" placeholder="Tamanho da Fonte da Escrita" step="1" min="0" name="tamanhoFonte">
+            </div>
+            <div class="form-group">
+                <label for="nome">Tamanho da Fonte do Preço</label>
+                <input type="number" class="form-control" placeholder="Tamanho da Fonte do Preço" step="1" min="0" name="tamanhoPreco">
+            </div>
+            <div class="form-group">
+                <label for="nome">Altura do Código de Barras (cm)</label>
+                <input type="number" class="form-control" placeholder="Altura do Código de Barras (cm)" name="alturaBarras">
+            </div>
+            <div class="float-end">
+                <button type="submit" class="btn btn-success">Salvar</button>
+                <button type="reset" class="btn btn-danger">Limpar</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function atualizaTamanhoPapel(){
+        var papel = document.getElementById("papel").value;
+        var altura = document.getElementById("alturaPapel");
+        var largura = document.getElementById("larguraPapel");
+        switch(papel){
+            case '0':
+                altura.value = 29.7;
+                altura.readonly = true;
+                largura.value = 21.0;
+                largura.readonly = true;
+                break;
+            case '1':
+                altura.value = 27.9;
+                altura.readonly = true;
+                largura.value = 21.6;
+                largura.readonly = true;
+                break;
+            case '2':
+                altura.readonly = false;
+                largura.readonly = false;
+                break;
+        }
+    }
+</script>

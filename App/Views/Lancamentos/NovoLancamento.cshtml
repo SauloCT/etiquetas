@@ -1,0 +1,219 @@
+﻿@model App.Models.Lancamentos.LancamentosModel;
+@{
+    ViewData["Title"] = "Novo lançamento";
+}
+
+<h1 class="display-4 text-center">@ViewData["Title"]</h1>
+<main>
+    <!-- A classe "card" fornece um contêiner de conteúdo flexível e extensível -->
+    <!-- A classe "card-body" define o bloco de construção do corpo do cartão -->
+    <div class="card card-body">
+        <form class="needs-validation" method="post" novalidate>
+            <div class="card card-body">
+                <h5 class="card-title">Dados do lançamento</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="empresa" class="form-label">Sua empresa <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" data-html="true" title="Sua Empresa: Esta será a sua empresa. Selecione a sua empresa entre as cadastradas no sistema, que será a responsável pelo valor que esta sendo lançado."></i>
+                        </label>
+                        <input id="empresa" class="form-control required" name="empresa" list="empresas" required />
+                        <datalist id="empresas">
+                            @if (Model.autocompletar.empresas != null && Model.autocompletar.empresas.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.empresas)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                        <label for="cliente" class="form-label">
+                            Cliente / Fornecedor <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Cliente ou Fornecedor: Esta é a pessoa do lançamento. Selecione a pessoa cadastrada responsável pelo lançamento, que poderá ser o cliente em caso de valor a receber, ou fornecedor em caso de valor a pagar."></i>
+                        </label>
+                        <input id="cliente" class="form-control" name="cliente" list="clientesFornecedores" required />
+                        <datalist id="clientesFornecedores">
+                            @if (Model.autocompletar.clientes != null && Model.autocompletar.clientes.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.clientes)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                        <label for="planoDeConta" class="form-label">Plano de conta <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Planos de Contas: Selecione neste campo o plano de contas do lançamento. Será ele que irá definir se o lançamento é uma despesa (saída de valor) ou uma receita (entrada do valor)"></i>
+                        </label>
+                        <input id="planoDeConta" class="form-control" name="planoDeConta" list="planosDeConta" required />
+                        <datalist id="planosDeConta">
+                            @if (Model.autocompletar.planosDeConta != null && Model.autocompletar.planosDeConta.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.planosDeConta)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="valor" class="form-label">Valor (R$) <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Valor: Valor total do lançamento. Neste campo deverá ser preenchido o valor total que será lançado no seu fluxo de caixa."></i></label>
+                        <input id="valor" type="number" class="form-control" name="valor" min="0.01" step="0.01" value="0.00" placeholder="0.00" required />
+                        <br />
+                        <label for="formaPagamento" class="form-label">Forma de pagamento</label>
+                        <input id="formaPagamento" class="form-control" name="formaPagamento" list="formasPagamento" />
+                        <datalist id="formasPagamento">
+                            @if (Model.autocompletar.formasPagamento != null && Model.autocompletar.formasPagamento.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.formasPagamento)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                        <label for="contaBancaria" class="form-label">Conta bancária</label>
+                        <input id="contaBancaria" class="form-control" name="contaBancaria" list="contasBancaria"/>
+                        <datalist id="contasBancaria">
+                            @if (Model.autocompletar.contasBancarias != null && Model.autocompletar.contasBancarias.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.contasBancarias)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dataCompetencia" class="form-label">Data da competência <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Data de Competência: Esta será a data de efetivação do lançamento, ou seja, a data em que a venda ou compra foi efetuada. Poderá concidir com a data de criação do lançamento."></i>
+                        </label>
+                        <input id="dataCompetencia" type="date" class="form-control" name="dataCompetencia" value="@DateTime.Today.ToString("yyyy-MM-dd")"/>
+                        <br />
+                        <label for="dataVencimento" class="form-label">Data do vencimento <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Data de Vencimento: Esta será a data de vencimento do lançamento, ou seja, a data limite para que seja feita a quitação do valor. Normalmente, se o pagamento for efetuado após esta data, é cobrado do pagador juros ou multas sobre o valor."></i>
+                        </label>
+                        <input id="dataVencimento" type="date" class="form-control" name="dataVencimento" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        <br />
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="foiQuitado" value="true" id="foiQuitado">
+                            <label class="form-check-label" for="foiQuitado">Foi quitado? <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Foi Quitado? Marque esta opção quando o valor tiver sido pago. A data de pagamento automaticamente será a data em que foi marcada esta opção."></i></label>
+                        </div>
+                        <br />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="card card-body">
+                <h5 class="card-title">Outros Campos</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="centroDeCusto" class="form-label">Centro de custo</label>
+                        <input id="centroDeCusto" class="form-control" name="centroDeCusto" list="centrosDeCusto" />
+                        <datalist id="centrosDeCusto">
+                            @if (Model.autocompletar.centrosDeCusto != null && Model.autocompletar.centrosDeCusto.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.centrosDeCusto)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                        <label for="desconto" class="form-label">Desconto (%)</label>
+                        <input id="desconto" type="number" class="form-control" name="desconto" min="0.00" step="0.01" value="0.00" placeholder="0.00" />
+                        <br />
+                        <label for="descontoDinheiro" class="form-label">Desconto (R$)</label>
+                        <input id="descontoDinheiro" type="number" class="form-control" name="descontoDinheiro" min="0.00" step="0.01" value="0.00" placeholder="0.00" />
+                        <br />
+                        <label for="descontoAteVencimento" class="form-label">Desconto até o vencimento (%) <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Desconto até data vencimento: Aqui você pode ajustar a porcentagem (%) do desconto que deseja dar para pagamentos antecipados."></i></label>
+                        <input id="descontoAteVencimento" type="number" class="form-control" name="descontoAteVencimento" min="0.00" step="0.01" value="0.00" placeholder="0.00" disabled/>
+                        <br />
+                        <label for="entrada" class="form-label">Entrada / Adiantamento (R$)</label>
+                        <input id="entrada" type="number" class="form-control" name="entrada" min="0.00" step="0.01" value="0.00" placeholder="0.00" />
+                        <br />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="numeroOuNomeDocumento" class="form-label">Número / Nome documento</label>
+                        <input id="numeroOuNomeDocumento" class="form-control" name="numeroOuNomeDocumento" />
+                        <br />
+                        <label for="grupo" class="form-label">Grupo</label>
+                        <input id="grupo" class="form-control" name="grupo" list="grupos"/>
+                        <datalist id="grupos">
+                            @if (Model.autocompletar.grupos != null && Model.autocompletar.grupos.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.grupos)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                        <label for="jurosAntecipacao" class="form-label">Juros antecipação (%) <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Juros cobrado pelo banco: Aqui você pode informar a porcentagem (%) dos juros cobrados pelo banco pela antecipação do recebimento."></i></label>
+                        <input id="jurosAntecipacao" type="number" class="form-control" name="jurosAntecipacao" min="0.00" step="0.01" value="0.00" placeholder="0.00" />
+                        <br />
+                        <label for="jurosDinheiroAntecipacao" class="form-label">Juros antecipação (R$) <i class="bi bi-question-circle" data-toggle="tooltip" data-placement="bottom" title="Juros cobrado pelo banco: Aqui você pode informar o valor dos juros cobrados pelo banco pela pela antecipação do recebimento."></i></label>
+                        <input id="jurosDinheiroAntecipacao" type="number" class="form-control" name="jurosDinheiroAntecipacao" min="0.00" step="0.01" value="0.00" placeholder="0.00" />
+                        <br />
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="foiConciliado" value="true" id="foiConciliado">
+                            <label class="form-check-label" for="foiConciliado">Foi conciliado?</label>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="" class="form-label">Linha digitável do documento</label>
+                        <input id="" class="form-control" name="" />
+                        <br />
+                        <label for="email" class="form-label">Criado por: </label>
+                        <input id="email" class="form-control" name="email" list="emails" required/>
+                        <datalist id="emails">
+                            @if (Model.autocompletar.emails != null && Model.autocompletar.emails.Count > 0)
+                            {
+                                foreach (var item in Model.autocompletar.emails)
+                                {
+                                    <option>@item</option>
+                                }
+                            }
+                        </datalist>
+                        <br />
+                        <label for="descricao" class="form-label">Breve descrição</label>
+                        <textarea id="descricao" class="form-control" name="descricao"></textarea>
+                        <br />
+                        <label for="observacao" class="form-label">Observações</label>
+                        <textarea id="observacao" class="form-control" name="observacao"></textarea>
+                        <br />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="d-flex">
+                <div class="col text-right">
+                    <button type="reset" class="btn btn-secondary">Limpar</button>
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    // JavaScript para desabilitar envios de formulário se houver campos inválidos
+    if(@Model.novoLancamento){
+        alert("Cadastro de novo lançamento realizado com sucesso!");
+    }
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            // Busca todos os formulários aos quais foi aplicado estilo personalizado de validação do Bootstrap
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+</script>

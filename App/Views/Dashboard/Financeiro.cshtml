@@ -1,0 +1,137 @@
+﻿
+@model DashboardPadrao 
+@{
+	ViewData["Title"] = "Dashboard";
+}
+
+<div class="text-center">
+	<h1 class="display-4">@ViewData["Title"]</h1>
+</div>
+<br>
+
+
+
+<h3>Dashboard Financeiro</h3>
+@*<div class="row"> <!-- insere uma fileira de colunas -->
+	<div class="p-3 col fix_height"> <!-- insere colunacom ajuste de altura-->
+		<div class="card h-100">
+		  <div class="card-body">
+			<h5 class="card-title">R$ @Model.dashboard_financeiro.valor1.ToString("0.00")</h5>
+			<p class="card-text">Total de Vendas</p>
+			<div class="d-flex flex-row"> <!--define a direção dos itens flexíveis, na horizontal, em um contêiner flexível com utilitários de direção-->
+				<div class="flex-fill"> <!--força os itens flexíveis a comprimentos iguais-->
+					<p class="fw-lighter">Meta: valor</p>
+				</div>
+				<div class="flex-fill"> <!--força os itens flexíveis a comprimentos iguais-->
+					<p class="fw-lighter">%Meta: valor%</p>
+				</div>
+			</div>
+		  </div>
+		</div>
+
+	</div>
+	<div class="p-3 col-md fix_height"> <!--insere coluna com tamanho medio e ajuste de altura-->
+		<div class="card h-100">
+		  <div class="card-body">
+			<h5 class="card-title">R$ @Model.dashboard_financeiro.valor2.ToString("0.00")</h5>
+			<p class="card-text">Total de Custos</p>
+		  </div>
+		</div>
+	</div>
+	<div class="p-3 col-md fix_height"> <!--insere coluna com tamanho medio e ajuste de altura-->
+		<div class="card h-100">
+		  <div class="card-body">
+			<h5 class="card-title">R$ @Model.dashboard_financeiro.valor3.ToString("0.00")</h5>
+			<p class="card-text">Resultado (Lucro/Prejuízo)</p>
+		  </div>
+		</div>
+	</div>
+	<div class="p-3 col-md fix_height"> <!--insere coluna com tamanho medio e ajuste de altura-->
+		<div class="card h-100">
+		  <div class="card-body">
+			<h5 class="card-title">@Model.dashboard_financeiro.valor4.ToString()</h5>
+			<p class="card-text">Número de pedidos</p>
+		  </div>
+		</div>
+	</div>
+	<div class="p-3 col-md fix_height"> <!--insere coluna com tamanho medio e ajuste de altura-->
+		<div class="card h-100">
+		  <div class="card-body">
+			<h5 class="card-title">@Model.dashboard_financeiro.valor5.ToString("0.00")</h5>
+			<p class="card-text">Itens Vendidos</p>
+		  </div>
+		</div>
+	</div>
+
+
+</div>*@
+
+<br />
+<div class="container-fluid"> <!--cria um conteiner de largura total-->
+  <div class="row g-2"> <!--fileira com uma calha tamanho 2-->
+	<div class="p-4 border col-md-8 fix_height"><!--insere uma coluna, tamanho médio 8, 4 de preenchimento, borda de separação entre colunas e ajuste de altura-->
+		<!DOCTYPE html>
+		<html>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<body>
+
+		<canvas id="myChart"></canvas>
+
+		<script>
+		var xValues = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+
+
+
+		new Chart("myChart", {
+		  type: "bar",
+		  data: {
+			labels: xValues,
+			datasets: [{
+			  label: 'Total de Despesa',
+			  backgroundColor: "#0000FF",
+			  data: [@Model.dashboard_financeiro.TotalDespesa[0].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[1].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[2].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[3].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[4].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[5].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[6].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[7].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[8].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[9].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[10].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalDespesa[11].ToString("0.00").Replace(",", ".")],
+			  stack: 'Stack 1',
+			  fill: false
+			},
+			{
+			  label: 'Total de Receita',
+			  backgroundColor: "#00FFFF",
+			  data: [@Model.dashboard_financeiro.TotalReceita[0].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[1].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[2].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[3].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[4].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[5].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[6].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[7].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[8].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[9].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[10].ToString("0.00").Replace(",", "."), @Model.dashboard_financeiro.TotalReceita[11].ToString("0.00").Replace(",", ".")],
+			  stack: 'Stack 0',
+			  fill: false
+			}]
+		  },
+		  options: {
+			responsive: true,
+			
+
+			 
+				legend: {display: true},
+				plugins:{
+					title: {
+					  display: true,
+					  text: "Receita x Despesa"
+					} 
+		        },
+			scales: {
+				  x: {
+					display: true,
+				  },
+				  y: {
+					display: true,
+					type: 'logarithmic', /*tipo logaritmico facilita a vizualização de dados com valores discrepantes*/
+				  } 
+				}
+		  },
+		});
+		</script>
+
+		</body>
+		</html>
+			</div>
+
+		
+
+
+

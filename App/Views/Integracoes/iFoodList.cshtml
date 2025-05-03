@@ -1,0 +1,100 @@
+﻿@model App.Models.IntegracoesModel;
+@{
+    ViewData["Title"] = "iFood - Lista";
+    Pager pager = null;
+    if(ViewBag.pager != null)
+    {
+        pager = ViewBag.pager;
+    }
+}
+
+<div>
+    <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+    <div>
+        @if (pager.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation example">
+                <ul class="pagination  justify-content-end">
+                    @if (pager.CurrentPage > 1)
+                    {
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="1">Primeira</a></li>
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@(pager.CurrentPage - 1)">Anterior</a></li>
+                    }
+                    @for (int i = pager.StartPage; i <= pager.EndPage; i++)
+                    {
+                        <li class="page-item @(i == pager.CurrentPage ? "active": "")"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@i">@i</a></li>
+                    }
+                    @if (pager.CurrentPage < pager.TotalPages)
+                    {
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@(pager.CurrentPage + 1)">Próxima</a></li>
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@pager.TotalPages">Ultima</a></li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle text-center text-nowrap">
+            <thead>
+                <tr>
+                    <th>Consumidor(a)</th>
+                    <th>Telefone</th>
+                    <th>Valor</th>
+                    <th>Código</th>
+                    <th>Código completo</th>
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Lista != null)
+                {
+                    if (Model.Lista.Count > 0)
+                    {
+                        for (int i = 0; i < Model.Lista.Count; i++)
+                        {
+                            <tr>
+                                <td>@Model.Lista[i].Customer.Name</td>
+                                <td>@Model.Lista[i].Customer.Phone.Number.ToString()</td>
+                                <td>R$ @Model.Lista[i].Total.OrderAmount.ToString("0.00")</td>
+                                <td>@Model.Lista[i].Status.LastOrDefault().Code</td>
+                                <td>@Model.Lista[i].Status.LastOrDefault().FullCode</td>
+                                <td>@Model.Lista[i].Status.FirstOrDefault().Data.AddHours(-3).ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div>
+        @if (pager.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation example">
+                <ul class="pagination  justify-content-end">
+                    @if (pager.CurrentPage > 1)
+                    {
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="1">Primeira</a></li>
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@(pager.CurrentPage - 1)">Anterior</a></li>
+                    }
+                    @for (int i = pager.StartPage; i <= pager.EndPage; i++)
+                    {
+                        <li class="page-item @(i == pager.CurrentPage ? "active": "")"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@i">@i</a></li>
+                    }
+                    @if (pager.CurrentPage < pager.TotalPages)
+                    {
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@(pager.CurrentPage + 1)">Próxima</a></li>
+                        <li class="page-item"><a class="page-link" asp-controller="Integracoes" asp-action="IFoodList" asp-route-currentPage="@pager.TotalPages">Ultima</a></li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+<script>
+    //função responsavel pelo reload do conteudo da página
+    function reloadContent() {
+        document.location.reload(true);
+    }
+    setTimeout(reloadContent, 30000);
+</script>

@@ -1,0 +1,123 @@
+﻿@using App.Controllers;
+@using System.Web.Mvc;
+@using App.VendaERP.Core.Models;
+@{
+    Layout = null;
+    OpcoesSelecionadas opcoesSelecionadas = null;
+    string empresa = null;
+    DtoEtiquetasPadroes etiqueta = null;
+    List<ProdutoEscolhido> listaItens = null;
+    if (ViewBag.nomeEmpresa != null)
+    {
+        empresa = ViewBag.nomeEmpresa;
+    }
+    if (ViewBag.modelEtiqueta != null)
+    {
+        etiqueta = ViewBag.modelEtiqueta;
+    }
+    if (ViewBag.opcoesSelecionadas != null)
+    {
+        opcoesSelecionadas = ViewBag.opcoesSelecionadas;
+    }
+    if (ViewBag.listaItens != null)
+    {
+        listaItens = ViewBag.listaItens;
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Baixar</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" integrity="sha512-QEAheCz+x/VkKtxeGoDq6nsGyzTx/0LMINTgQjqZ0h3+NjP+bCsPYz3hn0HnBkGmkIFSr7QcEZT+KyEM7lbLPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body {
+            @(etiqueta?.LarguraPapel > 0 ? "width: " + etiqueta?.LarguraPapel?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            @(etiqueta?.MargemSuperior > 0 ? "margin-top: "+etiqueta?.MargemSuperior?.ToString("0.00").Replace(",", ".")+"cm;":"");
+            @(etiqueta?.MargemEsquerda > 0 ? "margin-left: " + etiqueta?.MargemEsquerda?.ToString("0.00").Replace(",", ".")+"cm;":"");
+            display: table;
+            clear: both;
+        }
+
+        .item {
+            break-inside: avoid;
+            @(opcoesSelecionadas.ImprimirBorda ? "border: solid;border-width: 2px;border-radius: 10px;":"");
+            float: left;
+            @(etiqueta?.EspacamentoHorizontal > 0 ? "margin-left: " + etiqueta?.EspacamentoHorizontal?.ToString("0.00").Replace(",", ".") + "cm; margin-rigth: " + etiqueta?.EspacamentoHorizontal?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            @(etiqueta?.EspacamentoVertical > 0 ? "margin-top: " + etiqueta?.EspacamentoVertical?.ToString("0.00").Replace(",", ".") + "cm; margin-bottom: " + etiqueta?.EspacamentoVertical?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            padding: 2px;
+            word-wrap: break-word;
+            @(etiqueta?.Altura > 0 ? "max-height: " + etiqueta?.Altura?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            @(etiqueta?.Altura > 0 ? "height: " + etiqueta?.Altura?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            @(etiqueta?.Largura > 0 ? "max-width: " + etiqueta?.Largura?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            @(etiqueta?.Largura > 0 ? "width: " + etiqueta?.Largura?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+            overflow: hidden;
+        }
+        .barcode {
+            margin: 0;
+            width: 100%;
+            @(etiqueta?.AlturaEAN > 0 ? "height: " + etiqueta?.AlturaEAN?.ToString("0.00").Replace(",", ".") + "cm;" : "height: 75px;");
+        }
+        p {
+            margin: 0;
+            text-align: center;
+            @(etiqueta?.TamanhoFonte > 0 ? "font-size: "+etiqueta.TamanhoFonte+"pt;":"");
+        }
+        .preco{
+            @(etiqueta?.TamanhoPreco > 0 ? "font-size: "+etiqueta.TamanhoPreco+"pt;": "");
+        }
+    </style>
+</head>
+<body>
+    @if(listaItens != null && opcoesSelecionadas != null)
+    {
+        foreach (var item in listaItens)
+        {
+            @for (int i = 0; i < item.Quantidade; i++)
+            {
+                <div class="item">
+                @if (opcoesSelecionadas.DadoLadoCodigoBarras)
+                {
+                    <div style="width: 50%; float: left;">
+                        @if (opcoesSelecionadas.ImprimirCodigoBarras && !string.IsNullOrEmpty(item.CodigoBarras))
+                        {
+                                <div style="text-align: center;">
+                                    <svg class="barcode" jsbarcode-format="CODE128" jsbarcode-value="@item.CodigoBarras" jsbarcode-displayValue="false"></svg>
+                                </div>
+                        }
+                        @if (opcoesSelecionadas.ImprimirNumeroCodigoBarras) {<p>@item.CodigoBarras</p>}
+                    </div>
+                    <div style="width: 50%; float: right;">
+                        @if (opcoesSelecionadas.ImprimirCodigo)                                                     {<p>@item.Codigo</p>}
+                        @if (opcoesSelecionadas.ImprimirNome)                                                       {<p>@item.Nome</p>}
+                        @if (opcoesSelecionadas.ImprimirPreco)                                                      {<p class="preco">R$ @item.Preco.ToString("0.00")</p>}
+                        @if (opcoesSelecionadas.ImprimirMarca && !string.IsNullOrEmpty(item.Marca))                 {<p>@item.Marca</p>}
+                        @if (opcoesSelecionadas.ImprimirLote && !string.IsNullOrEmpty(item.Lote))                   {<p>Lote: @item.Lote</p>}
+                        @if (opcoesSelecionadas.ImprimirNumeroSerie && !string.IsNullOrEmpty(item.NumeroSerie))     {<p>nº série: @item.NumeroSerie</p>}
+                    </div>
+                }
+                else
+                {
+                    if (opcoesSelecionadas.ImprimirCodigoBarras && !string.IsNullOrEmpty(item.CodigoBarras))
+                    {
+                        <div style="text-align: center;">
+                            <svg class="barcode" jsbarcode-format="CODE128" jsbarcode-value="@item.CodigoBarras" jsbarcode-displayValue="false"></svg>
+                        </div>
+                    }
+                    if (opcoesSelecionadas.ImprimirNumeroCodigoBarras)                                              {<p>@item.CodigoBarras</p>}
+                    if (opcoesSelecionadas.ImprimirCodigo)                                                          {<p>@item.Codigo</p>}
+                    if (opcoesSelecionadas.ImprimirNome)                                                            {<p>@item.Nome</p>}
+                    if (opcoesSelecionadas.ImprimirPreco)                                                           {<p class="preco">R$ @item.Preco.ToString("0.00")</p>}
+                    if (opcoesSelecionadas.ImprimirMarca && !string.IsNullOrEmpty(item.Marca))                      {<p>@item.Marca</p>}
+                    if (opcoesSelecionadas.ImprimirLote && !string.IsNullOrEmpty(item.Lote))                        {<p>Lote: @item.Lote</p>}
+                    if (opcoesSelecionadas.ImprimirNumeroSerie && !string.IsNullOrEmpty(item.NumeroSerie))          {<p>nº série: @item.NumeroSerie</p>}
+                }
+            </div>
+            }
+        }
+    }
+    <script>
+        JsBarcode(".barcode").init();
+    </script>
+</body>
+</html>

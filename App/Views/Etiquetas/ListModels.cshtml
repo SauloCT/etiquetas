@@ -1,0 +1,98 @@
+﻿@model List<App.VendaERP.Core.Models.DtoEtiquetasPadroes>;
+@{
+    ViewData["Title"] = "Lista de Modelos de Etiquetas";
+    Pager pager = null;
+    if (ViewBag.pager != null)
+    {
+        pager = ViewBag.pager;
+    }
+}
+
+<div>
+    <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+</div>
+
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title fw-bold">Lista de Modelos de Etiquetas</h5>
+        <div class="text-end"><a role="button" class="btn btn-primary" href="/Etiquetas/NewModel">Adicionar Modelo</a></div>
+        <br />
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center text-nowrap">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Papel</th>
+                        <th>Altura Papel</th>
+                        <th>Largura Papel</th>
+                        <th>Espaçamento Horizontal</th>
+                        <th>Espaçamento Vertical</th>
+                        <th>Largura Etiqueta</th>
+                        <th>Altura Etiqueta</th>
+                        <th>Margem Esquerda</th>
+                        <th>Margem Superior</th>
+                        <th>Zoom de Impressão</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Nome</td>
+                                <td>@item.Papel</td>
+                                <td>@item.AlturaPapel?.ToString("0.00")</td>
+                                <td>@item.LarguraPapel?.ToString("0.00")</td>
+                                <td>@item.EspacamentoHorizontal?.ToString("0.00")</td>
+                                <td>@item.EspacamentoVertical?.ToString("0.00")</td>
+                                <td>@item.Largura?.ToString("0.00")</td>
+                                <td>@item.Altura?.ToString("0.00")</td>
+                                <td>@item.MargemEsquerda?.ToString("0.00")</td>
+                                <td>@item.MargemSuperior?.ToString("0.00")</td>
+                                <td>@item.ZoomImpressao?.ToString("0.00")</td>
+                                <td><a role="button" href="/Etiquetas/EditModel/@item.Id" class="btn btn-primary">Editar</a> | <button type = "button" class="btn btn-danger" onclick="removeModelo('@item.Id')">Remover</button></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@if (pager.TotalPages > 1)
+{
+    <br />
+    <nav aria-label="Page navigation example">
+        <ul class="pagination  justify-content-end">
+            @if (pager.CurrentPage > 1)
+            {
+                <li class="page-item"><a class="page-link" asp-controller="Etiquetas" asp-action="ListModels" asp-route-pageNumber="1">Primeira</a></li>
+                <li class="page-item"><a class="page-link" asp-controller="Etiquetas" asp-action="ListModels" asp-route-pageNumber="@(pager.CurrentPage - 1)">Anterior</a></li>
+            }
+            @for (int i = pager.StartPage; i <= pager.EndPage; i++)
+            {
+                <li class="page-item @(i == pager.CurrentPage ? "active": "")"><a class="page-link" asp-controller="Etiquetas" asp-action="ListModels" asp-route-pageNumber="@i">@i</a></li>
+            }
+            @if (pager.CurrentPage < pager.TotalPages)
+            {
+                <li class="page-item"><a class="page-link" asp-controller="Etiquetas" asp-action="ListModels" asp-route-pageNumber="@(pager.CurrentPage + 1)">Próxima</a></li>
+                <li class="page-item"><a class="page-link" asp-controller="Etiquetas" asp-action="ListModels" asp-route-pageNumber="@pager.TotalPages">Ultima</a></li>
+            }
+        </ul>
+    </nav>
+}
+<script>
+    function removeModelo(id){
+        var url = "/Etiquetas/RemoveModel";
+        $.post(url, { "id": id}, function (data) {
+            if(data.statusCode == 200){
+                location.reload();
+            }else{
+                window.alert("ocorreu um erro inesperado");
+            }
+        });
+    }
+</script>

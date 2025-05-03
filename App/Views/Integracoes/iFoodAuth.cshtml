@@ -1,0 +1,13 @@
+﻿@model App.Models.IntegracoesModel;
+@{
+    ViewData["Title"] = "iFood";
+}
+
+<div>
+    <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+</div>
+<form method="post">
+    <input name="clientId" placeholder="clientId" />
+    <input name="clientSecret" placeholder="clientSecret" />
+    <button type="submit">Enviar</button>
+</form>

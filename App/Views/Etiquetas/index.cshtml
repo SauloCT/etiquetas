@@ -1,0 +1,362 @@
+﻿@model App.Models.Autocompletar;
+@{
+    ViewData["Title"] = "Etiquetas";
+    string message = null;
+    if(ViewBag.message != null)
+    {
+        message = ViewBag.message;
+    }
+}
+
+<div>
+    <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+</div>
+
+<div>
+    <form method="post" action="/Etiquetas/Baixar">
+        <div class="form-group">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="Empresa" class="fw-bold">Empresa</label>
+                            <input type="text" class="form-control" id="Empresa" placeholder="Preencha o ID da empresa" list="empresas" name="empresa" required>
+                            <datalist id="empresas">
+                                @if (Model != null)
+                                {
+                                    if (Model.empresas != null && Model.empresas.Count > 0)
+                                    {
+                                        foreach (var item in Model.empresas)
+                                        {
+                                            <option value="@item.Id">@item.Nome</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                        <div class="col-6">
+                            <label for="TipoEtiqueta" class="fw-bold">Tipo Etiqueta</label>
+                            <input type="text" class="form-control" id="TipoEtiqueta" placeholder="Preencha o ID do Topo de Etiqueta" list="modelosEtiquetas" name="etiqueta" required>
+                            <datalist id="modelosEtiquetas">
+                                @if (Model != null)
+                                {
+                                    if (Model.modelosEtiquetas != null && Model.modelosEtiquetas.Count > 0)
+                                    {
+                                        foreach (var item in Model.modelosEtiquetas)
+                                        {
+                                            <option value="@item.Id">@item.Nome</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">Conteúdo da Etiqueta</h5>
+                    <hr />
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="clienteFornecedor" class="fw-bold">Cliente / Fornecedor</label>
+                            <input type="text" class="form-control" id="ClienteFornecedor" aria-describedby="clienteFornecedorHelp" placeholder="Preencha o ID do cliente ou fornecedor" list="clientesFornecedores" name="clienteFornecedor">
+                            <datalist id="clientesFornecedores">
+                                @if (Model != null)
+                                {
+                                    if (Model.clientes != null && Model.clientes.Count > 0)
+                                    {
+                                        foreach (var item in Model.clientes)
+                                        {
+                                            <option value="@item.Id">@item.Nome - @item.Email</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                        <div class="col-6">
+                            <label for="tabelaDePreco" class="fw-bold">Tabela de Preço</label>
+                            <input type="text" class="form-control" id="TabelaDePreco" aria-describedby="tabelaDePrecoHelp" placeholder="Preencha o ID da Tabela de Preço" list="tabelaDePreco" name="tabelaDePreco">
+                            <datalist id="tabelaDePreco">
+                                @if (Model != null)
+                                {
+                                    if (Model.tabelaDePreco != null && Model.tabelaDePreco.Count > 0)
+                                    {
+                                        foreach (var item in Model.tabelaDePreco)
+                                        {
+                                            <option value="@item.Id">@item.Nome</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="DadoLadoCodigoBarras" name="dadoLadoCodigoBarras">
+                                <label class="form-check-label fw-bold" for="DadoLadoCodigoBarras">
+                                    Dados ao Lado do Código de Barras
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirCodigoBarras" name="imprimirCodigoBarras">
+                                <label class="form-check-label fw-bold" for="ImprimirCodigoBarras">
+                                    Imprimir Código de Barras
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNumeroCodigoBarras" name="imprimirNumeroCodigoBarras">
+                                <label class="form-check-label fw-bold" for="ImprimirNumeroCodigoBarras">
+                                    Imprimir Numeração do Codigo de Barras
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirCodigo" name="imprimirCodigo">
+                                <label class="form-check-label fw-bold" for="ImprimirCodigo">
+                                    Imprimir Código
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNome" name="imprimirNome" checked>
+                                <label class="form-check-label fw-bold" for="ImprimirNome">
+                                    Imprimir Nome
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirPreco" name="imprimirPreco" checked>
+                                <label class="form-check-label fw-bold" for="ImprimirPreco">
+                                    Imprimir Preço
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirMarca" name="imprimirMarca">
+                                <label class="form-check-label fw-bold" for="ImprimirMarca">
+                                    Imprimir Marca
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirBorda" name="imprimirBorda">
+                                <label class="form-check-label fw-bold" for="ImprimirBorda">
+                                    Imprimir Borda
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirLote" name="imprimirLote">
+                                <label class="form-check-label fw-bold" for="ImprimirLote">
+                                    Imprimir Lote
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNumeroSerie" name="imprimirNumeroSerie">
+                                <label class="form-check-label fw-bold" for="ImprimirNumeroSerie">
+                                    Utilizar Número de Série
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">Conteúdo da Etiqueta</h5>
+                    <hr />
+                    <div class="row">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle text-center text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Produto</th>
+                                        <th>Quantidade</th>
+                                        <th>Preço</th>
+                                        <th>Lote</th>
+                                        <th>Nº Série</th>
+                                        <th>Unidade</th>
+                                        <th>Marca</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="Lista-de-itens">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-4">
+                            <label for="Deposito" class="fw-bold">Deposito</label>
+                            <input type="text" class="form-control" id="Deposito" aria-describedby="depositoHelp" list="deposito">
+                            <datalist id="deposito">
+                                @if (Model != null)
+                                {
+                                    if (Model.depositos != null && Model.depositos.Count > 0)
+                                    {
+                                        foreach (var item in Model.depositos)
+                                        {
+                                            <option value="@item.Id">@item.Nome</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                        <div class="col-4">
+                            <label for="Produto" class="fw-bold">Produto</label>
+                            <input type="text" class="form-control" id="Produto" aria-describedby="produtoHelp" list="produto">
+                            <datalist id="produto">
+                                @if (Model != null)
+                                {
+                                    if (Model.produtos != null && Model.produtos.Count > 0)
+                                    {
+                                        foreach (var item in Model.produtos)
+                                        {
+                                            <option value="@item.Id">@item.Nome</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                        <div class="col-4">
+                            <label class="fw-bold">Ações</label><br />
+                            <button type="button" class="btn btn-primary" onclick="AdicionaItem()">Adicionar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="float-end">
+                <button type="submit" class="btn btn-success">Visualizar</button>
+                <button type="reset" class="btn btn-danger" onclick="ResetForm()">Limpar</button>
+            </div>
+            <br />
+        </div>
+    </form>
+</div>
+<script>
+    AdicionaItem = function () {
+        var deposito = document.getElementById("Deposito").value;
+        var produto = document.getElementById("Produto").value;
+        //if(deposito == ""){
+        //    window.alert("O campo deposito deve estar preenchido.");
+        //    return;
+        //}
+        if (produto == "") {
+            window.alert("O campo produto deve estar preenchido.");
+            return;
+        }
+        document.getElementById("Deposito").value = "";
+        document.getElementById("Produto").value = "";
+        if(!document.getElementById(produto)){
+        
+            var url =  "/Etiquetas/GetProduto";
+            $.post(url, { "deposito": deposito, "produto": produto}, function (data)
+            {
+                var produto = JSON.parse(data);
+                var linha = document.createElement("tr");
+                linha.id = produto.Id;
+
+                var colunaCodigo = document.createElement("td");
+                colunaCodigo.appendChild(document.createTextNode(produto.Codigo))
+                linha.appendChild(colunaCodigo);
+
+                var colunaNome = document.createElement("td");
+                colunaNome.appendChild(document.createTextNode(produto.Nome))
+                linha.appendChild(colunaNome);
+
+                var colunaQuantidade = document.createElement("td");
+                colunaQuantidade.innerHTML = `<input type="number" id="` + produto.Id + "Quantidade" + `" min="1" step="1" value="1" onchange="AtualizaQuantidadeItem('` + produto.Id + `')">`;
+                linha.appendChild(colunaQuantidade);
+
+                var colunaPreco = document.createElement("td");
+                colunaPreco.innerText = parseFloat(produto.PrecoVenda.replace(",", ".")).toFixed(2);
+                linha.appendChild(colunaPreco);
+
+                var colunaLote = document.createElement("td");
+                colunaLote.innerHTML = `<input type="text" id="` + produto.Id + "Lote" + `" onchange="AtualizaLoteItem('` + produto.Id + `')">`;
+                linha.appendChild(colunaLote);
+
+
+                var colunaNumeroSerie = document.createElement("td");
+                colunaNumeroSerie.innerHTML = `<input type="text" id="` + produto.Id + "NumeroSerie" + `" onchange="AtualizaNumeroSerieItem('` + produto.Id + `')">`;
+                linha.appendChild(colunaNumeroSerie);
+
+                var colunaUnidade = document.createElement("td");
+                colunaUnidade.appendChild(document.createTextNode("UN"));
+                linha.appendChild(colunaUnidade);
+
+
+                var colunaMarca = document.createElement("td");
+                colunaMarca.appendChild(document.createTextNode(produto.Marca));
+                linha.appendChild(colunaMarca);
+
+                var colunaAcao = document.createElement("td");
+                colunaAcao.innerHTML = `<button type="button" class="btn btn-danger" onclick="RemoveItem('` + produto.Id + `')">Remover</button>`;
+                linha.appendChild(colunaAcao);
+
+                var inputTempForm = document.createElement("input");
+                inputTempForm.id = produto.Id+"form";
+                inputTempForm.defaultValue = produto.Id+`, 1, , `;
+                inputTempForm.name = "itens";
+                inputTempForm.hidden = true;
+                linha.appendChild(inputTempForm);
+
+                document.getElementById('Lista-de-itens').appendChild(linha);
+            });
+        }else{
+            window.alert("O item já foi adicionado a lista de itens!")
+        }
+    }
+    RemoveItem = function(id) {
+        document.getElementById(id).remove();
+        console.log(id)
+    }
+    AtualizaQuantidadeItem = function (id) {
+        var quantidade = document.getElementById(id + "Quantidade").value;
+        var lote = document.getElementById(id + "Lote").value;
+        var numeroSerie = document.getElementById(id + "NumeroSerie").value;
+        document.getElementById(id + "form").setAttribute('value', id + `, ` + quantidade + ', ' + lote + ', ' + numeroSerie);
+    }
+    AtualizaLoteItem = function (id) {
+        var quantidade = document.getElementById(id + "Quantidade").value;
+        var lote = document.getElementById(id + "Lote").value;
+        var numeroSerie = document.getElementById(id + "NumeroSerie").value;
+        document.getElementById(id + "form").setAttribute('value', id + `, ` + quantidade + ', ' + lote + ', ' + numeroSerie);
+    }
+    AtualizaNumeroSerieItem = function (id) {
+        var quantidade = document.getElementById(id + "Quantidade").value;
+        var lote = document.getElementById(id + "Lote").value;
+        var numeroSerie = document.getElementById(id + "NumeroSerie").value;
+        document.getElementById(id + "form").setAttribute('value', id + `, ` + quantidade + ', ' + lote + ', ' + numeroSerie);
+    }
+    ResetForm = function (){
+        document.getElementById('Lista-de-itens').innerHTML = '';
+    }
+</script>
