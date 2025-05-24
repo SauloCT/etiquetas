@@ -120,4 +120,126 @@ a[aria-expanded="true"] {
 }
 
 
+/***** Table Styles *****/
+.table-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.table-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+/* Coluna fixa esquerda */
+.table-fixed-left {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #fff;
+    box-shadow: 1px 0 2px -1px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+}
+
+/* Área central rolável */
+.table-scroll {
+    overflow-x: auto;
+    flex: 1;
+    margin: 0;
+    position: relative;
+    /* Esconde a sombra das colunas fixas quando não há scroll */
+    background-clip: padding-box;
+}
+
+/* Coluna fixa direita */
+.table-fixed-right {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: #fff;
+    /* Suavizando a sombra */
+    box-shadow: -1px 0 2px -1px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+}
+
+/* Estilos comuns para colunas fixas */
+.table-fixed-left, .table-fixed-right {
+    display: table;
+    width: auto;
+    background: #fff;
+}
+
+.table-fixed-left {
+    /* Suavizando a sombra */
+    box-shadow: 1px 0 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Mantém o background alternado nas colunas fixas */
+.table-fixed-left.table-striped-column,
+.table-fixed-right.table-striped-column {
+    background-color: #f8f9fa;
+}
+
+/* Remove as bordas duplicadas entre as seções */
+.table-fixed-left table,
+.table-scroll table,
+.table-fixed-right table {
+    border-collapse: collapse;
+}
+
+.table-fixed-left td,
+.table-fixed-left th {
+    border-right: none;
+}
+
+.table-fixed-right td,
+.table-fixed-right th {
+    border-left: none;
+}
+
+/* Ajusta o padding das células para ficarem mais próximas */
+.table td, 
+.table th {
+    height: 40px;
+    line-height: 1;
+    vertical-align: middle;
+    padding: 4px 8px;
+}
+
+/* Garante que a coluna de ações tenha o mesmo tamanho */
+.table-fixed-right td,
+.table-fixed-right th {
+    padding: 4px;
+    height: 40px;
+    line-height: 1;
+}
+
+/* Garante que todas as seções da tabela tenham o mesmo layout */
+.table {
+    margin-bottom: 0;
+}
+
+/* Botões de ação */
+.action-buttons {
+    white-space: nowrap;
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    padding: 0;
+}
+
+.action-buttons .btn {
+    padding: 4px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.action-buttons .btn i {
+    font-size: 1rem;
+}
+
+
 
