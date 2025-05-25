@@ -15,19 +15,19 @@ namespace VendaERP.Core.Models
         }
 
         [IndexedColumn()]
-        public string CategoriaID { get; set; }
+        public string? CategoriaID { get; set; }
 
-        public string Categoria { get; set; }
+        public string? Categoria { get; set; }
 
-        public string MarcaID { get; set; }
-
-
-        public string Marca { get; set; }
-
-        public string FornecedorID { get; set; }
+        public string? MarcaID { get; set; }
 
 
-        public string Fornecedor { get; set; }
+        public string? Marca { get; set; }
+
+        public string? FornecedorID { get; set; }
+
+
+        public string? Fornecedor { get; set; }
 
         [IndexedColumn()]
 
@@ -36,46 +36,46 @@ namespace VendaERP.Core.Models
         // Codigo Nota Fiscal que Aceita Numeros
         [IndexedColumn()]
 
-        public string CodigoNFe { get; set; }
+        public string CodigoNFe { get; set; } = null!;
 
         // Codigo para referência com importação do Mercado Livre
         [IndexedColumn()]
-        public string CodigoML { get; set; }
+        public string? CodigoML { get; set; }
 
         // Codigo Anterior - SPED
-        public string CodigoNFe_Anterior { get; set; }
+        public string? CodigoNFe_Anterior { get; set; }
 
         [Obsolete("Os números de Série do Produto devem ficar relacionado ao Produto no Depósito, e não somente ao produto!")]
-        public string NumeroSerie { get; set; }
+        public string? NumeroSerie { get; set; }
 
         [IndexedColumn()]
         [KeyAttribute("Produto")]
 
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
 
-        public string GrupoTributarioID { get; set; }
+        public string? GrupoTributarioID { get; set; }
 
-        public string GrupoTributario { get; set; }
+        public string? GrupoTributario { get; set; }
 
-        public string CodigoGenero { get; set; }
+        public string? CodigoGenero { get; set; }
 
-        public string Genero { get; set; }
+        public string? Genero { get; set; }
 
-        public string EstoqueUnidadeID { get; set; }
+        public string? EstoqueUnidadeID { get; set; }
 
-        public string EstoqueUnidade { get; set; }
+        public string? EstoqueUnidade { get; set; }
 
-        public string EstoqueUnidadeCodigo { get; set; }
+        public string? EstoqueUnidadeCodigo { get; set; }
 
-        public string Especie { get; set; }
+        public string? Especie { get; set; }
 
-        public string Prateleira { get; set; }
+        public string? Prateleira { get; set; }
         public int LimiteQuantidadeVenda { get; set; }
 
-        public string Especificacao { get; set; }
+        public string? Especificacao { get; set; }
 
         [BsonIgnore]
-        public string SaldosEstoque { get; set; }
+        public string? SaldosEstoque { get; set; }
 
         public double EstoqueSaldo { get; set; }
 
@@ -89,13 +89,13 @@ namespace VendaERP.Core.Models
 
         public double PesoKG { get; set; }
 
-        public string TamanhoID { get; set; }
+        public string? TamanhoID { get; set; }
 
-        public string Tamanho { get; set; }
+        public string? Tamanho { get; set; }
 
-        public string GradeID { get; set; }
+        public string? GradeID { get; set; }
 
-        public string Grade { get; set; }
+        public string? Grade { get; set; }
 
         public double PrecoCusto { get; set; }
 
@@ -135,62 +135,62 @@ namespace VendaERP.Core.Models
 
         public bool VisivelSite { get; set; }
 
-        public string NomeWeb { get; set; }
+        public string? NomeWeb { get; set; }
 
         public bool DestaqueSite { get; set; }
 
         public bool EstoqueNegativo { get; set; }
 
-        public string EAN_NFe { get; set; }
+        public string? EAN_NFe { get; set; }
 
-        public string EAN_UnidadeTributavel_NFe { get; set; }
+        public string? EAN_UnidadeTributavel_NFe { get; set; }
 
-        public string IPI_SituacaoTributaria { get; set; }
+        public string? IPI_SituacaoTributaria { get; set; }
 
         public double IPI { get; set; }
 
-        public string IPI_ClasseEnquadramento { get; set; }
+        public string? IPI_ClasseEnquadramento { get; set; }
 
-        public string IPI_EnquadramentoLegal { get; set; }
+        public string? IPI_EnquadramentoLegal { get; set; }
 
-        public string NCM_NFe { get; set; }
+        public string? NCM_NFe { get; set; }
 
-        public string DescricaoNCM_NFe { get; set; }
+        public string? DescricaoNCM_NFe { get; set; }
 
-        public string NCM_EX_IPI { get; set; }
+        public string? NCM_EX_IPI { get; set; }
 
-        public string CEST_NFe { get; set; }
+        public string? CEST_NFe { get; set; }
 
-        public string UnidadeTributavel_NFe { get; set; }
+        public string? UnidadeTributavel_NFe { get; set; }
 
-        public string QuantidadeTributavel_NFe { get; set; }
+        public string? QuantidadeTributavel_NFe { get; set; }
 
         public bool ProdutoPossuiUcomDiferenteDeUtrib { get; set; }
 
         public double FatorDeConversaoUnidadeComercialParaTributavel { get; set; }
 
-        public string UnidadeComercial_NFe { get; set; }
+        public string? UnidadeComercial_NFe { get; set; }
 
-        public string ModalidadeBC_ICMSST_NFe { get; set; }
+        public string? ModalidadeBC_ICMSST_NFe { get; set; }
 
         public int OrigemMercadoria_NFe { get; set; }
 
-        public string CFOPPadrao_NFeID { get; set; }
+        public string? CFOPPadrao_NFeID { get; set; }
 
-        public string CFOPPadrao_NFe { get; set; }
+        public string? CFOPPadrao_NFe { get; set; }
 
         public bool ProduzidoEscalaNaoRelevante { get; set; }
 
-        public string Fabricante { get; set; }
+        public string? Fabricante { get; set; }
 
-        public string FabricanteID { get; set; }
+        public string? FabricanteID { get; set; }
 
-        public string CodigoBeneficioFiscal { get; set; }
+        public string? CodigoBeneficioFiscal { get; set; }
 
         public bool UnidadePossuiNumeroSerie { get; set; }
 
         [Obsolete("Usar método da BlProdutosDepositos")]
-        public List<string> NumerosSerieDisponiveis { get; set; }
+        public List<string> NumerosSerieDisponiveis { get; set; } = new();
 
         //Dados utilizado para fazer a composição do produto
         [BsonIgnore]
@@ -198,21 +198,21 @@ namespace VendaERP.Core.Models
 
         //Dados utilizado para fazer a composição
         [BsonIgnore]
-        public string ProdutoPaiId { get; set; }
+        public string? ProdutoPaiId { get; set; }
 
         [BsonIgnore]
-        public string KitProdutoID { get; set; }
+        public string? KitProdutoID { get; set; }
 
         //Dados utilizado para fazer a composição do produto
         [BsonIgnore]
-        public string Etapa { get; set; }
+        public string? Etapa { get; set; }
 
         //Dados utilizado para fazer a impressão de etiquetas
         [BsonIgnore]
         public int ReproducaoEtiquetas { get; set; }
 
         // dados de ecommerce
-        public string FiltrosCategoria { get; set; }
+        public string? FiltrosCategoria { get; set; }
 
         public double PercentualDescontoBoleto { get; set; }
 
@@ -225,25 +225,25 @@ namespace VendaERP.Core.Models
 
         public double ComissaoRepresentacao { get; set; }
 
-        public string GeneroFiscal { get; set; }
+        public string? GeneroFiscal { get; set; }
 
-        public string TecnicoID { get; set; }
+        public string? TecnicoID { get; set; }
 
-        public string Tecnico { get; set; }
+        public string? Tecnico { get; set; }
 
         public bool IgnorarEstoque { get; set; }
 
-        public string TipoServicoID { get; set; }
+        public string? TipoServicoID { get; set; }
 
-        public string TipoServico { get; set; }
+        public string? TipoServico { get; set; }
 
-        public string ServicoCodigo { get; set; }
+        public string? ServicoCodigo { get; set; }
 
         // NFe
         public double PercentualCargaTributariaMedia { get; set; }
 
         //novos
-        public string CodigoFornecedor { get; set; }
+        public string? CodigoFornecedor { get; set; }
 
         public bool CalcularCustoComposicao { get; set; }
 
@@ -266,7 +266,7 @@ namespace VendaERP.Core.Models
 
         #region MercadoLivre
 
-        public string MercadoLivreProductId { get; set; }
+        public string? MercadoLivreProductId { get; set; }
 
         #endregion
 
@@ -305,9 +305,9 @@ namespace VendaERP.Core.Models
 
         public bool ProdutoPossuiInfComb { get; set; }
 
-        public string CodigoANP { get; set; }
+        public string? CodigoANP { get; set; }
 
-        public string DescricaoANP { get; set; }
+        public string? DescricaoANP { get; set; }
 
         public double PercentualGLP { get; set; }
 
@@ -324,7 +324,7 @@ namespace VendaERP.Core.Models
 
         public int ArmaTipo { get; set; }
 
-        public string ArmaDescricao { get; set; }
+        public string? ArmaDescricao { get; set; }
 
         public ePrecoFixo TipoPrecoFixo { get; set; }
 
@@ -335,7 +335,7 @@ namespace VendaERP.Core.Models
 
         public int QuantidadeMaximaSabores { get; set; }
 
-        public string ProdutoVariacaoPaiID { get; set; }
+        public string? ProdutoVariacaoPaiID { get; set; }
 
         public double? Isr { get; set; }
 
@@ -345,20 +345,20 @@ namespace VendaERP.Core.Models
 
         public double? Ieps { get; set; }
 
-        public string PlanoDeContaID { get; set; }
+        public string? PlanoDeContaID { get; set; }
 
-        public string PlanoDeConta { get; set; }
+        public string? PlanoDeConta { get; set; }
 
 
-        public List<DtoProdutoSimilar> ProdutosSimilares { get; set; }
+        public List<DtoProdutoSimilar> ProdutosSimilares { get; set; } = new();
 
         public bool? Food { get; set; }
 
         public int MaxQuantityVariation { get; set; }
 
-        public List<ProductFoodOptions> FoodOptions { get; set; }
+        public List<ProductFoodOptions> FoodOptions { get; set; } = new();
 
-        public string CategoryId { get; set; }
+        public string? CategoryId { get; set; }
 
         [BsonIgnore]
         public int ProductGroupId { get; set; }
@@ -390,17 +390,17 @@ namespace VendaERP.Core.Models
 
     public class ProductFoodOptions
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Code { get; set; }
+        public string? Code { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public bool Pause { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        public string Image { get; set; }
+        public string? Image { get; set; }
 
         public short Quantity { get; set; }
 

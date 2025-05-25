@@ -3,7 +3,6 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using MongoDB.Driver;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Globalization;

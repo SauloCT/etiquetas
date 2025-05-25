@@ -6,18 +6,18 @@ namespace VendaERP.Core.Models
 	[Serializable]
 	public class DtoProdutoComposicao : Entity
 	{
-		public string DepositoID { get; set; }
+		public string? DepositoID { get; set; }
 
-		public string Deposito { get; set; }
+		public string? Deposito { get; set; }
 
-		public string Produto { get; set; }        
+		public string? Produto { get; set; }        
 
-		public string ProdutoID { get; set; }
+		public string? ProdutoID { get; set; }
 
 		[IndexedColumn()]
-		public string ProdutoPaiID { get; set; }
+		public string? ProdutoPaiID { get; set; }
 
-		public string Genero { get; set; }
+		public string? Genero { get; set; }
 
 		public double Quantidade { get; set; }
 
@@ -29,17 +29,17 @@ namespace VendaERP.Core.Models
 
 		public double CustoTotal { get; set; }
 
-		public string Codigo { get; set; }
+		public string? Codigo { get; set; }
 
-		public string EstoqueUnidade { get; set; }
+		public string? EstoqueUnidade { get; set; }
 
-		public string Observacoes { get; set; }
+		public string? Observacoes { get; set; }
 
 		public bool IgnorarEstoque { get; set; }
 
-		public string GradeID { get; set; }
+		public string? GradeID { get; set; }
 
-		public string Grade { get; set; }
+		public string? Grade { get; set; }
 
 		public bool IncidirImpostosNoCusto { get; set; }
 

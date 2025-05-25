@@ -11,15 +11,15 @@ namespace App.Models
         /// <summary>
         /// Lista de clientes
         /// </summary>
-        public List<Cliente> clientes { get; set; }
+        public List<Cliente> clientes { get; set; } = new();
         /// <summary>
         /// Lista de empresas
         /// </summary>
-        public List<Empresa> empresas { get; set; }
-        public List<TabelaDePreco> tabelaDePreco { get; set; }
-        public List<Deposito> depositos { get; set; }
-        public List<ProdutoAutocompletar> produtos { get; set; }
-        public List<ModeloEtiqueta> modelosEtiquetas { get; set; }
+        public List<Empresa> empresas { get; set; } = new();
+        public List<TabelaDePreco> tabelaDePreco { get; set; } = new();
+        public List<Deposito> depositos { get; set; } = new();
+        public List<ProdutoAutocompletar> produtos { get; set; } = new();
+        public List<ModeloEtiqueta> modelosEtiquetas { get; set; } = new();
         
         public Autocompletar(DBAccess db)
         {
@@ -58,52 +58,52 @@ namespace App.Models
     public class Cliente
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonElement("NomeFantasia")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
         [BsonElement("Email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
     }
     
     public class Empresa
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonElement("NomeFantasia")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
     }
     
     public class TabelaDePreco
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonElement("Nome")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
     }
     
     public class Deposito
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonElement("Nome")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
     }
     
     public class ProdutoAutocompletar
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonElement("Nome")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
         [BsonElement("CodigoNFe")]
-        public string CodigoNFe { get; set; }
+        public string? CodigoNFe { get; set; }
     }
     
     public class ModeloEtiqueta
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [BsonElement("Nome")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
     }
 }

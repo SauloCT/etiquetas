@@ -8,31 +8,31 @@ namespace App.Models
     {
         [BsonRepresentation(BsonType.ObjectId)]
         [JsonProperty("Id")]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
 
         [BsonElement("CodigoNFe")]
-        public string Codigo { get; set; }
+        public string? Codigo { get; set; }
         
         [BsonElement("Nome")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = null!;
         
         [BsonElement("PrecoVenda")]
         public double Preco { get; set; }
         
         [BsonElement("Marca")]
-        public string Marca { get; set; }
+        public string? Marca { get; set; }
         
         [BsonElement("NumeroSerie")]
-        public string NumeroSerie { get; set; }
+        public string? NumeroSerie { get; set; }
         
         [BsonElement("EAN_NFe")]
-        public string CodigoBarras { get; set; }
+        public string? CodigoBarras { get; set; }
         
         [BsonElement("Tamanho")]
-        public string Tamanho { get; set; }
+        public string? Tamanho { get; set; }
         
         [BsonIgnore]
-        public string Lote { get; set; }
+        public string? Lote { get; set; }
         
         [BsonIgnore]
         public int Quantidade { get; set; }

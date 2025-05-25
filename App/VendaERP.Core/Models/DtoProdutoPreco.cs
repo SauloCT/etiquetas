@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -13,14 +13,14 @@ namespace VendaERP.Core.Models
     public class DtoProdutoPreco : EntityLastUpdate
     {
         [IndexedColumn("ProdutoID", "TabelaID")]
-        public string ProdutoID { get; set; }
+        public string? ProdutoID { get; set; }
 
         [IndexedColumn()]
-        public string TabelaID { get; set; }
+        public string? TabelaID { get; set; }
 
-        public string CodigoProduto { get; set; }
+        public string? CodigoProduto { get; set; }
 
-        public string Produto { get; set; }
+        public string? Produto { get; set; }
 
         public double ComissaoVendedor { get; set; }
 
@@ -49,10 +49,10 @@ namespace VendaERP.Core.Models
         public double MVA_OLD { get; set; }                
 
         [BsonIgnore]
-        public string ProdutoCategoria { get; set; }
+        public string? ProdutoCategoria { get; set; }
 
         [BsonIgnore]
-        public string ProdutoMarca { get; set; }
+        public string? ProdutoMarca { get; set; }
 
         [BsonIgnore]
         public int MagentoProductId { get; set; }
@@ -61,7 +61,7 @@ namespace VendaERP.Core.Models
         public int WooCommerceProductId { get; set; }
 
         [BsonIgnore]
-        public string TempId { get; set; }
+        public string? TempId { get; set; }
 
         [BsonIgnore]
         public bool Visible { get; set; }
