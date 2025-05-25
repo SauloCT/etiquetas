@@ -1,7 +1,4 @@
-﻿
-
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace VendaERP.Core.Models
@@ -64,13 +61,9 @@ namespace VendaERP.Core.Models
 
         public int ProtestoDiasPadrao { get; set; }
 
-        public ModoContagem ModoContagemProtestoPadrao { get; set; }
-
         public bool DevolveBoleto { get; set; }
 
         public int DevolucaoDiasPadrao { get; set; }
-
-        public ModoContagem ModoContagemDevolucaoPadrao { get; set; }
 
         public string InstrucaoPagamentoAposVencimento { get; set; }
 

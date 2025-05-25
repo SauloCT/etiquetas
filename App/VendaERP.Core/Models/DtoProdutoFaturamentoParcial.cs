@@ -342,9 +342,9 @@ namespace VendaERP.Core.Models
 
         public double QuantidadeKit { get; set; }
 
-        public List<ComposicaoProduto> Composicao { get; set; }
+        public List<DtoProdutoComposicao> Composicao { get; set; }
 
-        public List<ProdutoSimilar> ProdutosSimilares { get; set; }
+        public List<DtoProdutoSimilar> ProdutosSimilares { get; set; }
 
         public int ProductGroupId { get; set; }
 

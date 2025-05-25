@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using BorlanV2.DAO.DTO.SIGE_Entidades;
 
 namespace VendaERP.Core.Models
 {

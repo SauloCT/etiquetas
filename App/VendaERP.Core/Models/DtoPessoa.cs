@@ -1,6 +1,4 @@
-﻿
-
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 using System;
 using System.Collections.Generic;
@@ -188,7 +186,7 @@ namespace VendaERP.Core.Models
 
         public DtoPessoaReferencia[] Referencias { get; set; }
 
-        public DtoCredenciadoraTaxas[] CredenciadoraTaxas { get; set; }
+        // public DtoCredenciadoraTaxas[] CredenciadoraTaxas { get; set; }
 
         //////////////////////////Dados da credenciadora//////////////////////////////////////////////////
         public string CredenciadoraTipoIntegracao { get; set; }
