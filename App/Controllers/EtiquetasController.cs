@@ -156,7 +156,7 @@ namespace App.Controllers
             List<ProdutoEscolhido> listaItens = new List<ProdutoEscolhido>();
             foreach(var item in itens){
                 //prod[0] == id / prod[1] == quantidade / prod[2] == lote / prod[3] == numeroSerie
-                string[] prod = item.Split(", ");
+                string[] prod = item.Split(',');
                 var produdo = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == prod[0]).Project(new BsonDocument { { "_id", true }, { "CodigoNFe", true }, { "Nome", true }, { "PrecoVenda", true }, { "Marca", true }, { "EAN_NFe", true } }).FirstOrDefault().ToJson());
                 if (produdo != null)
                 {

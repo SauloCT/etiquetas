@@ -38,7 +38,7 @@ namespace App.Models
         public List<PlanoDeConta> planosDeConta { get; set; }
         public List<TabelaDePreco> tabelaDePreco { get; set; }
         public List<Deposito> depositos { get; set; }
-        public List<Produto> produtos { get; set; }
+        public List<ProdutoAutocompletar> produtos { get; set; }
         public List<ModeloEtiqueta> modelosEtiquetas { get; set; }
         public Autocompletar(DBAccess db)
         {
@@ -70,9 +70,13 @@ namespace App.Models
             var depositoBson = _db._repositoryDeposito.Collection.Aggregate().Project(new BsonDocument { { "_id", true }, { "Nome", true } }).Sort("{Nome:1}").ToList();
             if (depositoBson != null)
                 this.depositos = BsonSerializer.Deserialize<List<Deposito>>(depositoBson.ToJson());
-            var produtosBson = _db._repositoryProduto.Collection.Aggregate().Project(new BsonDocument { { "_id", true }, { "Nome", true } }).Sort("{Nome:1}").ToList();
+            var produtosBson = _db._repositoryProduto.Collection.Aggregate().Project(new BsonDocument { 
+                { "_id", true }, 
+                { "Nome", true },
+                { "CodigoNFe", true }
+            }).Sort("{Nome:1}").ToList();
             if (produtosBson != null)
-                this.produtos = BsonSerializer.Deserialize<List<Produto>>(produtosBson.ToJson());
+                this.produtos = BsonSerializer.Deserialize<List<ProdutoAutocompletar>>(produtosBson.ToJson());
             var modelosEtiquetasBson = _db._repositoryEtiquetasPadroes.Collection.Aggregate().Project(new BsonDocument { { "_id", true }, { "Nome", true } }).Sort("{Nome:1}").ToList();
             if (modelosEtiquetasBson != null)
                 this.modelosEtiquetas = BsonSerializer.Deserialize<List<ModeloEtiqueta>>(modelosEtiquetasBson.ToJson());
@@ -143,12 +147,14 @@ namespace App.Models
         [BsonElement("Nome")]
         public string Nome { get; set; }
     }
-    public class Produto
+    public class ProdutoAutocompletar
     {
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         [BsonElement("Nome")]
         public string Nome { get; set; }
+        [BsonElement("CodigoNFe")]
+        public string CodigoNFe { get; set; }
     }
     public class ModeloEtiqueta
     {

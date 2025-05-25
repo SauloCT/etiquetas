@@ -14,6 +14,7 @@
 
 <div>
     <form method="post" action="/Etiquetas/Baixar">
+        <div id="form"></div>
         <div class="form-group">
             <div class="card">
                 <div class="card-body">
@@ -104,7 +105,7 @@
                         </div>
                         <div class="col-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirCodigoBarras" name="imprimirCodigoBarras">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirCodigoBarras" name="imprimirCodigoBarras" checked>
                                 <label class="form-check-label fw-bold" for="ImprimirCodigoBarras">
                                     Imprimir Código de Barras
                                 </label>
@@ -112,9 +113,9 @@
                         </div>
                         <div class="col-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNumeroCodigoBarras" name="imprimirNumeroCodigoBarras">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNumeroCodigoBarras" name="imprimirNumeroCodigoBarras" checked>
                                 <label class="form-check-label fw-bold" for="ImprimirNumeroCodigoBarras">
-                                    Imprimir Numeração do Codigo de Barras
+                                    Imprimir Numeração do Código de Barras
                                 </label>
                             </div>
                         </div>
@@ -156,7 +157,7 @@
                         </div>
                         <div class="col-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirBorda" name="imprimirBorda">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirBorda" name="imprimirBorda" checked>
                                 <label class="form-check-label fw-bold" for="ImprimirBorda">
                                     Imprimir Borda
                                 </label>
@@ -213,7 +214,7 @@
                     <hr />
                     <div class="row">
                         <div class="col-4">
-                            <label for="Deposito" class="fw-bold">Deposito</label>
+                            <label for="Deposito" class="fw-bold">Depósito</label>
                             <input type="text" class="form-control" id="Deposito" aria-describedby="depositoHelp" list="deposito">
                             <datalist id="deposito">
                                 @if (Model != null)
@@ -229,7 +230,23 @@
                             </datalist>
                         </div>
                         <div class="col-4">
-                            <label for="Produto" class="fw-bold">Produto</label>
+                            <label for="CodigoNFe" class="fw-bold">Código do Produto</label>
+                            <input type="text" class="form-control" id="CodigoNFe" aria-describedby="codigoHelp" list="codigoProduto">
+                            <datalist id="codigoProduto">
+                                @if (Model != null)
+                                {
+                                    if (Model.produtos != null && Model.produtos.Count > 0)
+                                    {
+                                        foreach (var item in Model.produtos)
+                                        {
+                                            <option value="@item.CodigoNFe" data-id="@item.Id" data-nome="@item.Nome">@item.Nome</option>
+                                        }
+                                    }
+                                }
+                            </datalist>
+                        </div>
+                        <div class="col-4">
+                            <label for="Produto" class="fw-bold">Nome do Produto</label>
                             <input type="text" class="form-control" id="Produto" aria-describedby="produtoHelp" list="produto">
                             <datalist id="produto">
                                 @if (Model != null)
@@ -238,22 +255,19 @@
                                     {
                                         foreach (var item in Model.produtos)
                                         {
-                                            <option value="@item.Id">@item.Nome</option>
+                                            <option value="@item.Nome" data-id="@item.Id" data-codigo="@item.CodigoNFe">@item.CodigoNFe</option>
                                         }
                                     }
                                 }
                             </datalist>
-                        </div>
-                        <div class="col-4">
-                            <label class="fw-bold">Ações</label><br />
-                            <button type="button" class="btn btn-primary" onclick="AdicionaItem()">Adicionar</button>
                         </div>
                     </div>
                 </div>
             </div>
             <br />
             <div class="float-end">
-                <button type="submit" class="btn btn-success">Visualizar</button>
+                <button type="button" class="btn btn-primary" onclick="AdicionaItem()" title="Adicionar produto à lista de etiquetas">Adicionar</button>
+                <button type="submit" class="btn btn-success" title="Finalizar e visualizar a lista de etiquetas">Finalizar</button>
                 <button type="reset" class="btn btn-danger" onclick="ResetForm()">Limpar</button>
             </div>
             <br />
@@ -264,99 +278,139 @@
     AdicionaItem = function () {
         var deposito = document.getElementById("Deposito").value;
         var produto = document.getElementById("Produto").value;
-        //if(deposito == ""){
-        //    window.alert("O campo deposito deve estar preenchido.");
-        //    return;
-        //}
-        if (produto == "") {
-            window.alert("O campo produto deve estar preenchido.");
+        var codigoNFe = document.getElementById("CodigoNFe").value;
+        var produtoId = "";
+        
+        // Se o código do produto foi preenchido, use-o para buscar o produto
+        if (codigoNFe !== "") {
+            // Procura o produto pelo código
+            var datalist = document.getElementById("codigoProduto");
+            var options = datalist.getElementsByTagName("option");
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === codigoNFe) {
+                    produto = options[i].getAttribute("data-nome");
+                    produtoId = options[i].getAttribute("data-id");
+                    break;
+                }
+            }
+        } else if (produto !== "") {
+            // Procura o produto pelo nome
+            var datalist = document.getElementById("produto");
+            var options = datalist.getElementsByTagName("option");
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === produto) {
+                    codigoNFe = options[i].getAttribute("data-codigo");
+                    produtoId = options[i].getAttribute("data-id");
+                    break;
+                }
+            }
+        }
+        
+        if (produto === "" || produtoId === "") {
+            window.alert("O campo produto ou código do produto deve estar preenchido.");
             return;
         }
+        
         document.getElementById("Deposito").value = "";
         document.getElementById("Produto").value = "";
-        if(!document.getElementById(produto)){
+        document.getElementById("CodigoNFe").value = "";
         
-            var url =  "/Etiquetas/GetProduto";
-            $.post(url, { "deposito": deposito, "produto": produto}, function (data)
-            {
+        if(!document.getElementById(produtoId)){
+            var url = "/Etiquetas/GetProduto";
+            $.post(url, { "deposito": deposito, "produto": produtoId }, function (data) {
                 var produto = JSON.parse(data);
-                var linha = document.createElement("tr");
-                linha.id = produto.Id;
+                var row = document.getElementById("Lista-de-itens").insertRow(-1);
+                row.id = produto.Id;
 
-                var colunaCodigo = document.createElement("td");
-                colunaCodigo.appendChild(document.createTextNode(produto.Codigo))
-                linha.appendChild(colunaCodigo);
+                var cell1 = row.insertCell(0);  // Código
+                var cell2 = row.insertCell(1);  // Produto
+                var cell3 = row.insertCell(2);  // Quantidade
+                var cell4 = row.insertCell(3);  // Preço
+                var cell5 = row.insertCell(4);  // Lote
+                var cell6 = row.insertCell(5);  // Nº Série
+                var cell7 = row.insertCell(6);  // Unidade
+                var cell8 = row.insertCell(7);  // Marca
+                var cell9 = row.insertCell(8);  // Ação
 
-                var colunaNome = document.createElement("td");
-                colunaNome.appendChild(document.createTextNode(produto.Nome))
-                linha.appendChild(colunaNome);
-
-                var colunaQuantidade = document.createElement("td");
-                colunaQuantidade.innerHTML = `<input type="number" id="` + produto.Id + "Quantidade" + `" min="1" step="1" value="1" onchange="AtualizaQuantidadeItem('` + produto.Id + `')">`;
-                linha.appendChild(colunaQuantidade);
-
-                var colunaPreco = document.createElement("td");
-                colunaPreco.innerText = parseFloat(produto.PrecoVenda.replace(",", ".")).toFixed(2);
-                linha.appendChild(colunaPreco);
-
-                var colunaLote = document.createElement("td");
-                colunaLote.innerHTML = `<input type="text" id="` + produto.Id + "Lote" + `" onchange="AtualizaLoteItem('` + produto.Id + `')">`;
-                linha.appendChild(colunaLote);
-
-
-                var colunaNumeroSerie = document.createElement("td");
-                colunaNumeroSerie.innerHTML = `<input type="text" id="` + produto.Id + "NumeroSerie" + `" onchange="AtualizaNumeroSerieItem('` + produto.Id + `')">`;
-                linha.appendChild(colunaNumeroSerie);
-
-                var colunaUnidade = document.createElement("td");
-                colunaUnidade.appendChild(document.createTextNode("UN"));
-                linha.appendChild(colunaUnidade);
-
-
-                var colunaMarca = document.createElement("td");
-                colunaMarca.appendChild(document.createTextNode(produto.Marca));
-                linha.appendChild(colunaMarca);
-
-                var colunaAcao = document.createElement("td");
-                colunaAcao.innerHTML = `<button type="button" class="btn btn-danger" onclick="RemoveItem('` + produto.Id + `')">Remover</button>`;
-                linha.appendChild(colunaAcao);
-
-                var inputTempForm = document.createElement("input");
-                inputTempForm.id = produto.Id+"form";
-                inputTempForm.defaultValue = produto.Id+`, 1, , `;
-                inputTempForm.name = "itens";
-                inputTempForm.hidden = true;
-                linha.appendChild(inputTempForm);
-
-                document.getElementById('Lista-de-itens').appendChild(linha);
+                cell1.innerHTML = produto.CodigoNFe || produto.Codigo;
+                cell2.innerHTML = produto.Nome;
+                cell3.innerHTML = '<input type="number" id="' + produto.Id + 'Quantidade" min="1" step="1" value="1" class="form-control form-control-sm" onchange="AtualizaQuantidadeItem(\'' + produto.Id + '\')">';
+                cell4.innerHTML = parseFloat(produto.PrecoVenda || 0).toFixed(2);
+                cell5.innerHTML = '<input type="text" id="' + produto.Id + 'Lote" class="form-control form-control-sm" onchange="AtualizaLoteItem(\'' + produto.Id + '\')">';
+                cell6.innerHTML = '<input type="text" id="' + produto.Id + 'NumeroSerie" class="form-control form-control-sm" onchange="AtualizaNumeroSerieItem(\'' + produto.Id + '\')">';
+                cell7.innerHTML = produto.Unidade || 'UN';
+                cell8.innerHTML = produto.Marca || '';
+                cell9.innerHTML = '<button type="button" class="btn btn-danger btn-sm" onclick="RemoveItem(\'' + produto.Id + '\')"><i class="fas fa-trash"></i></button>';
+                
+                // Adiciona input hidden para o form com os valores iniciais
+                document.getElementById("form").innerHTML += '<input type="hidden" id="' + produto.Id + 'form" name="itens" value="' + produto.Id + ',1,,">'; // Inicializa com id, quantidade=1, lote vazio e numeroSerie vazio
             });
-        }else{
-            window.alert("O item já foi adicionado a lista de itens!")
         }
     }
-    RemoveItem = function(id) {
-        document.getElementById(id).remove();
-        console.log(id)
+
+    RemoveItem = function (id) {
+        var row = document.getElementById(id);
+        row.parentNode.removeChild(row);
+        // Remove o input hidden correspondente
+        var hiddenInput = document.getElementById(id + "form");
+        if (hiddenInput) {
+            hiddenInput.parentNode.removeChild(hiddenInput);
+        }
     }
+
+    // Funções para atualizar os valores no form
     AtualizaQuantidadeItem = function (id) {
         var quantidade = document.getElementById(id + "Quantidade").value;
-        var lote = document.getElementById(id + "Lote").value;
-        var numeroSerie = document.getElementById(id + "NumeroSerie").value;
-        document.getElementById(id + "form").setAttribute('value', id + `, ` + quantidade + ', ' + lote + ', ' + numeroSerie);
+        var lote = document.getElementById(id + "Lote").value || '';
+        var numeroSerie = document.getElementById(id + "NumeroSerie").value || '';
+        document.getElementById(id + "form").value = [id, quantidade, lote, numeroSerie].join(',');
     }
+
     AtualizaLoteItem = function (id) {
         var quantidade = document.getElementById(id + "Quantidade").value;
-        var lote = document.getElementById(id + "Lote").value;
-        var numeroSerie = document.getElementById(id + "NumeroSerie").value;
-        document.getElementById(id + "form").setAttribute('value', id + `, ` + quantidade + ', ' + lote + ', ' + numeroSerie);
+        var lote = document.getElementById(id + "Lote").value || '';
+        var numeroSerie = document.getElementById(id + "NumeroSerie").value || '';
+        document.getElementById(id + "form").value = [id, quantidade, lote, numeroSerie].join(',');
     }
+
     AtualizaNumeroSerieItem = function (id) {
         var quantidade = document.getElementById(id + "Quantidade").value;
-        var lote = document.getElementById(id + "Lote").value;
-        var numeroSerie = document.getElementById(id + "NumeroSerie").value;
-        document.getElementById(id + "form").setAttribute('value', id + `, ` + quantidade + ', ' + lote + ', ' + numeroSerie);
+        var lote = document.getElementById(id + "Lote").value || '';
+        var numeroSerie = document.getElementById(id + "NumeroSerie").value || '';
+        document.getElementById(id + "form").value = [id, quantidade, lote, numeroSerie].join(',');
     }
+
+    // Sincroniza os campos de produto e código
+    document.getElementById("CodigoNFe").addEventListener("change", function() {
+        if (this.value !== "") {
+            // Procura o produto pelo código
+            var datalist = document.getElementById("codigoProduto");
+            var options = datalist.getElementsByTagName("option");
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === this.value) {
+                    document.getElementById("Produto").value = options[i].getAttribute("data-nome");
+                    break;
+                }
+            }
+        }
+    });
+
+    document.getElementById("Produto").addEventListener("change", function() {
+        if (this.value !== "") {
+            // Procura o código pelo produto
+            var datalist = document.getElementById("produto");
+            var options = datalist.getElementsByTagName("option");
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === this.value) {
+                    document.getElementById("CodigoNFe").value = options[i].getAttribute("data-codigo");
+                    break;
+                }
+            }
+        }
+    });
+
     ResetForm = function (){
         document.getElementById('Lista-de-itens').innerHTML = '';
+        document.getElementById('form').innerHTML = '';
     }
 </script>
