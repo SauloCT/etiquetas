@@ -1,0 +1,178 @@
+@using App.Controllers
+@using App.VendaERP.Core.Models
+@model App.Models.EtiquetasContentViewModel
+@{
+    OpcoesSelecionadas opcoesSelecionadas = Model.OpcoesSelecionadas;
+    string empresa = Model.NomeEmpresa;
+    DtoEtiquetasPadroes etiqueta = Model.ModelEtiqueta;
+    List<ProdutoEscolhido> listaItens = Model.ListaItens;
+}
+
+<style>
+    body {
+        @(etiqueta?.LarguraPapel > 0 ? "width: " + etiqueta?.LarguraPapel?.ToString("0.00").Replace(",", ".") + "cm;" : "");
+        @(etiqueta?.MargemSuperior > 0 ? "margin-top: "+etiqueta?.MargemSuperior?.ToString("0.00").Replace(",", ".")+"cm;":"");
+        @(etiqueta?.MargemEsquerda > 0 ? "margin-left: " + etiqueta?.MargemEsquerda?.ToString("0.00").Replace(",", ".")+"cm;":"");
+        display: table;
+        clear: both;
+    }
+
+    /* Converter cm para pixels considerando 96 DPI */
+    :root {
+        --zoom: @(etiqueta?.ZoomImpressao > 0 ? (etiqueta.ZoomImpressao.Value / 100.0).ToString().Replace(",", ".") : "1");
+        --cm-to-px: calc(37.7952756 * var(--zoom));
+    }
+
+    .item {
+        break-inside: avoid;
+        @(opcoesSelecionadas.ImprimirBorda ? "border: solid;border-width: 2px;border-radius: 10px;":"");
+        float: left;
+        @(etiqueta?.EspacamentoHorizontal > 0 ? $"margin-left: calc({etiqueta?.EspacamentoHorizontal?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px); margin-right: calc({etiqueta?.EspacamentoHorizontal?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "");
+        @(etiqueta?.EspacamentoVertical > 0 ? $"margin-top: calc({etiqueta?.EspacamentoVertical?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px); margin-bottom: calc({etiqueta?.EspacamentoVertical?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "");
+        padding: 2px;
+        word-wrap: break-word;
+        @(etiqueta?.Altura > 0 ? $"max-height: calc({etiqueta?.Altura?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "");
+        @(etiqueta?.Altura > 0 ? $"height: calc({etiqueta?.Altura?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "");
+        @(etiqueta?.Largura > 0 ? $"max-width: calc({etiqueta?.Largura?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "");
+        @(etiqueta?.Largura > 0 ? $"width: calc({etiqueta?.Largura?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "");
+        overflow: hidden;
+    }
+    .barcode {
+        margin: 0;
+        width: 100%;
+        @(etiqueta?.AlturaEAN > 0 ? $"height: calc({etiqueta?.AlturaEAN?.ToString("0.00").Replace(",", ".")} * var(--cm-to-px) * 1px);" : "height: 75px;");
+    }
+    p {
+        margin: 0;
+        text-align: center;
+        @(etiqueta?.TamanhoFonte > 0 ? $"font-size: calc({etiqueta.TamanhoFonte} * var(--zoom) * 1pt);" : "");
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .preco {
+        @(etiqueta?.TamanhoPreco > 0 ? $"font-size: calc({etiqueta.TamanhoPreco} * var(--zoom) * 1pt);" : "");
+    }
+
+    /* Adicionar grade para visualização do papel */
+    #paper-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+        background-size: 1cm 1cm;
+        pointer-events: none;
+        z-index: -1;
+    }
+</style>
+
+<div id="paper-grid"></div>
+
+@if(listaItens != null && opcoesSelecionadas != null)
+{
+    foreach (var item in listaItens)
+    {
+        @for (int i = 0; i < item.Quantidade; i++)
+        {
+            <div class="item">
+            @if (opcoesSelecionadas.DadoLadoCodigoBarras)
+            {
+                <div style="width: 50%; float: left;">
+                    @if (opcoesSelecionadas.ImprimirNome)
+                    {
+                        <p>@item.Nome</p>
+                    }
+                    @if (opcoesSelecionadas.ImprimirPreco)
+                    {
+                        <p class="preco">@(opcoesSelecionadas.PrecoComoCodigo 
+                            ? ((int)(item.Preco * 100)).ToString("000000") 
+                            : "R$ " + item.Preco.ToString("0.00"))</p>
+                    }
+                    @if (opcoesSelecionadas.ImprimirCodigoBarras && !string.IsNullOrEmpty(item.CodigoBarras))
+                    {
+                        <div style="text-align: center;">
+                            <svg class="barcode" 
+                                 jsbarcode-format="CODE128" 
+                                 jsbarcode-value="@item.CodigoBarras" 
+                                 jsbarcode-displayValue="false"
+                                 jsbarcode-width="3"
+                                 jsbarcode-margin="0"
+                                 jsbarcode-background="transparent"></svg>
+                        </div>
+                    }
+                    @if (opcoesSelecionadas.ImprimirNumeroCodigoBarras)
+                    {
+                        <p>@item.CodigoBarras</p>
+                    }
+                </div>
+                <div style="width: 50%; float: right;">
+                    @if (opcoesSelecionadas.ImprimirCodigo)
+                    {
+                        <p>@item.Codigo</p>
+                    }
+                    @if (opcoesSelecionadas.ImprimirMarca && !string.IsNullOrEmpty(item.Marca))
+                    {
+                        <p>@item.Marca</p>
+                    }
+                    @if (opcoesSelecionadas.ImprimirLote && !string.IsNullOrEmpty(item.Lote))
+                    {
+                        <p>Lote: @item.Lote</p>
+                    }
+                    @if (opcoesSelecionadas.ImprimirNumeroSerie && !string.IsNullOrEmpty(item.NumeroSerie))
+                    {
+                        <p>nº série: @item.NumeroSerie</p>
+                    }
+                </div>
+            }
+            else
+            {
+                if (opcoesSelecionadas.ImprimirNome)
+                {
+                    <p>@item.Nome</p>
+                }
+                if (opcoesSelecionadas.ImprimirPreco)
+                {
+                    <p class="preco">@(opcoesSelecionadas.PrecoComoCodigo 
+                        ? ((int)(item.Preco * 100)).ToString("000000") 
+                        : "R$ " + item.Preco.ToString("0.00"))</p>
+                }
+                if (opcoesSelecionadas.ImprimirCodigoBarras && !string.IsNullOrEmpty(item.CodigoBarras))
+                {
+                    <div style="text-align: center;">
+                        <svg class="barcode" 
+                             jsbarcode-format="CODE128" 
+                             jsbarcode-value="@item.CodigoBarras" 
+                             jsbarcode-displayValue="false"
+                             jsbarcode-width="3"
+                             jsbarcode-margin="0"
+                             jsbarcode-background="transparent"></svg>
+                    </div>
+                }
+                if (opcoesSelecionadas.ImprimirNumeroCodigoBarras)
+                {
+                    <p>@item.CodigoBarras</p>
+                }
+                if (opcoesSelecionadas.ImprimirCodigo)
+                {
+                    <p>@item.Codigo</p>
+                }
+                if (opcoesSelecionadas.ImprimirMarca && !string.IsNullOrEmpty(item.Marca))
+                {
+                    <p>@item.Marca</p>
+                }
+                if (opcoesSelecionadas.ImprimirLote && !string.IsNullOrEmpty(item.Lote))
+                {
+                    <p>Lote: @item.Lote</p>
+                }
+                if (opcoesSelecionadas.ImprimirNumeroSerie && !string.IsNullOrEmpty(item.NumeroSerie))
+                {
+                    <p>nº série: @item.NumeroSerie</p>
+                }
+            }
+        </div>
+        }
+    }
+} 

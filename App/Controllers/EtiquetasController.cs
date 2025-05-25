@@ -106,142 +106,141 @@ namespace App.Controllers
             return Redirect("/Etiquetas/EditModel/" + id);
         }
         [HttpPost]
-        public IActionResult Baixar(string? empresa, string? etiqueta, string? clienteFornecedor, string? tabelaDePreco, bool dadoLadoCodigoBarras, bool imprimirCodigoBarras, bool imprimirNumeroCodigoBarras, bool imprimirCodigo, bool imprimirNome, bool imprimirPreco, bool imprimirMarca, bool imprimirBorda, bool imprimirLote, bool imprimirNumeroSerie, List<string> itens)
+        public IActionResult Baixar(string empresa, string etiqueta, string clienteFornecedor, string tabelaDePreco, string deposito, bool dadoLadoCodigoBarras, bool imprimirCodigoBarras, bool imprimirNumeroCodigoBarras, bool imprimirCodigo, bool imprimirNome, bool imprimirPreco, bool precoComoCodigo, bool imprimirMarca, bool imprimirBorda, bool imprimirLote, bool imprimirNumeroSerie, string[] itens)
         {
-            if (itens == null || itens.Count == 0)
-            {
-                TempData["message"] = "Ao menos um item deve ser inserido";
-                return Redirect("/Etiquetas/Index");
-            }
-            string nomeEmpresa = null;
             try
             {
-                if(string.IsNullOrEmpty(empresa)){
-                    TempData["message"] = "Erro: ID da empresa vazia ou nula.";
-                    return Redirect("/Etiquetas/Index");
-                }
-                nomeEmpresa = _db._repositoryEmpresa.Collection.Find(x => x.Id == empresa)?.FirstOrDefault()?.NomeFantasia;
-                if (string.IsNullOrEmpty(nomeEmpresa))
+                if (itens == null || itens.Length == 0)
                 {
-                    TempData["message"] = "Erro: Empresa não encontrada";
+                    TempData["message"] = "Ao menos um item deve ser inserido";
                     return Redirect("/Etiquetas/Index");
                 }
-            }
-            catch
-            {
-                TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo nome da empresa";
-                return Redirect("/Etiquetas/Index");
-            }
+                string nomeEmpresa = null;
+                try
+                {
+                    if(string.IsNullOrEmpty(empresa)){
+                        TempData["message"] = "Erro: ID da empresa vazia ou nula.";
+                        return Redirect("/Etiquetas/Index");
+                    }
+                    nomeEmpresa = _db._repositoryEmpresa.Collection.Find(x => x.Id == empresa)?.FirstOrDefault()?.NomeFantasia;
+                    if (string.IsNullOrEmpty(nomeEmpresa))
+                    {
+                        TempData["message"] = "Erro: Empresa não encontrada";
+                        return Redirect("/Etiquetas/Index");
+                    }
+                }
+                catch
+                {
+                    TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo nome da empresa";
+                    return Redirect("/Etiquetas/Index");
+                }
 
-            DtoEtiquetasPadroes modelEtiqueta = null;
-            try
-            {
-                if (string.IsNullOrEmpty(etiqueta))
+                DtoEtiquetasPadroes modelEtiqueta = null;
+                try
                 {
-                    TempData["message"] = "Erro: ID do modelo de etiqueta vazia ou nula.";
+                    if (string.IsNullOrEmpty(etiqueta))
+                    {
+                        TempData["message"] = "Erro: ID do modelo de etiqueta vazia ou nula.";
+                        return Redirect("/Etiquetas/Index");
+                    }
+                    modelEtiqueta = _db._repositoryEtiquetasPadroes.Collection.Find(x => x.Id == etiqueta).FirstOrDefault();
+                    if (modelEtiqueta == null)
+                    {
+                        TempData["message"] = "Erro: Empresa não encontrada";
+                        return Redirect("/Etiquetas/Index");
+                    }
+                }
+                catch
+                {
+                    TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo modelo de etiqueta";
                     return Redirect("/Etiquetas/Index");
                 }
-                modelEtiqueta = _db._repositoryEtiquetasPadroes.Collection.Find(x => x.Id == etiqueta).FirstOrDefault();
-                if (modelEtiqueta == null)
-                {
-                    TempData["message"] = "Erro: Empresa não encontrada";
-                    return Redirect("/Etiquetas/Index");
-                }
-            }
-            catch
-            {
-                TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo modelo de etiqueta";
-                return Redirect("/Etiquetas/Index");
-            }
-            List<ProdutoEscolhido> listaItens = new List<ProdutoEscolhido>();
-            foreach(var item in itens){
-                //prod[0] == id / prod[1] == quantidade / prod[2] == lote / prod[3] == numeroSerie
-                string[] prod = item.Split(',');
-                var produdo = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == prod[0]).Project(new BsonDocument { { "_id", true }, { "CodigoNFe", true }, { "Nome", true }, { "PrecoVenda", true }, { "Marca", true }, { "EAN_NFe", true } }).FirstOrDefault().ToJson());
-                if (produdo != null)
-                {
-                    produdo.Quantidade = int.Parse(prod[1]);
-                    if (!string.IsNullOrEmpty(prod[2]))
-                        produdo.Lote = prod[2];
-                    if (!string.IsNullOrEmpty(prod[3]))
-                        produdo.NumeroSerie = prod[3];
+                List<ProdutoEscolhido> listaItens = new List<ProdutoEscolhido>();
+                foreach(var item in itens){
+                    //prod[0] == id / prod[1] == quantidade / prod[2] == lote / prod[3] == numeroSerie
+                    string[] prod = item.Split(',');
+                    var produdo = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == prod[0]).Project(new BsonDocument { { "_id", true }, { "CodigoNFe", true }, { "Nome", true }, { "PrecoVenda", true }, { "Marca", true }, { "EAN_NFe", true } }).FirstOrDefault().ToJson());
+                    if (produdo != null)
+                    {
+                        produdo.Quantidade = int.Parse(prod[1]);
+                        if (!string.IsNullOrEmpty(prod[2]))
+                            produdo.Lote = prod[2];
+                        if (!string.IsNullOrEmpty(prod[3]))
+                            produdo.NumeroSerie = prod[3];
 
-                    listaItens.Add(produdo);
+                        listaItens.Add(produdo);
+                    }
                 }
-            }
 
-            this.ViewBag.opcoesSelecionadas = new OpcoesSelecionadas()
+                OpcoesSelecionadas opcoesSelecionadas = new OpcoesSelecionadas()
+                {
+                    DadoLadoCodigoBarras = dadoLadoCodigoBarras,
+                    ImprimirBorda = imprimirBorda,
+                    ImprimirCodigo = imprimirCodigo,
+                    ImprimirCodigoBarras = imprimirCodigoBarras,
+                    ImprimirLote = imprimirLote,
+                    ImprimirMarca = imprimirMarca,
+                    ImprimirNome = imprimirNome,
+                    ImprimirNumeroCodigoBarras = imprimirNumeroCodigoBarras,
+                    ImprimirNumeroSerie = imprimirNumeroSerie,
+                    ImprimirPreco = imprimirPreco,
+                    PrecoComoCodigo = precoComoCodigo
+                };
+
+                // Se for uma requisição AJAX, retorna apenas a view parcial
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return PartialView("_EtiquetasContent", new EtiquetasContentViewModel { 
+                        NomeEmpresa = nomeEmpresa,
+                        ModelEtiqueta = modelEtiqueta,
+                        OpcoesSelecionadas = opcoesSelecionadas,
+                        ListaItens = listaItens
+                    });
+                }
+
+                // Se não for AJAX, retorna a view completa como antes
+                ViewBag.nomeEmpresa = nomeEmpresa;
+                ViewBag.modelEtiqueta = modelEtiqueta;
+                ViewBag.opcoesSelecionadas = opcoesSelecionadas;
+                ViewBag.listaItens = listaItens;
+                return View();
+            }
+            catch (Exception ex)
             {
-                DadoLadoCodigoBarras = dadoLadoCodigoBarras,
-                ImprimirBorda = imprimirBorda,
-                ImprimirCodigo = imprimirCodigo,
-                ImprimirCodigoBarras = imprimirCodigoBarras,
-                ImprimirLote = imprimirLote,
-                ImprimirMarca = imprimirMarca,
-                ImprimirNome = imprimirNome,
-                ImprimirNumeroCodigoBarras = imprimirNumeroCodigoBarras,
-                ImprimirNumeroSerie = imprimirNumeroSerie,
-                ImprimirPreco = imprimirPreco,
-            };
-            this.ViewBag.nomeEmpresa = nomeEmpresa;
-            this.ViewBag.modelEtiqueta = modelEtiqueta;
-            this.ViewBag.listaItens = listaItens;
-            return View();
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(ex.Message);
+                }
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Index");
+            }
         }
         [HttpPost]
         public string GetProduto(string deposito, string produto)
         {
-            var produtoEscolhido = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == produto).Project(new BsonDocument { { "_id", true }, { "CodigoNFe", true }, { "Nome", true }, { "PrecoVenda", true }, { "Marca", true }, { "NumeroSerie", true } }).FirstOrDefault().ToJson());
+            var produtoEscolhido = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == produto).Project(new BsonDocument { 
+                { "_id", true }, 
+                { "CodigoNFe", true }, 
+                { "Nome", true }, 
+                { "PrecoVenda", true }, 
+                { "Marca", true }, 
+                { "NumeroSerie", true },
+                { "EAN_NFe", true } 
+            }).FirstOrDefault().ToJson());
+
             if (produtoEscolhido != null)
             {
                 return "{" +
                     "\"Id\":\"" + produtoEscolhido.Id + "\"," +
-                    "\"Codigo\":\"" + produtoEscolhido.Codigo + "\"," +
+                    "\"Codigo\":\"" + (produtoEscolhido.Codigo ?? "") + "\"," +
+                    "\"CodigoBarras\":\"" + (produtoEscolhido.CodigoBarras ?? "") + "\"," +
                     //replace utilizado para tratar inserções no banco de dados de "
                     "\"Nome\":\"" + produtoEscolhido.Nome.Replace("\"","\\\"") + "\"," +
                     "\"PrecoVenda\":\"" + produtoEscolhido.Preco + "\"," +
-                    "\"Marca\":\"" + produtoEscolhido.Marca + "\"," +
-                    "\"NumeroSerie\":\"" + produtoEscolhido.NumeroSerie + "\"}";
+                    "\"Marca\":\"" + (produtoEscolhido.Marca ?? "") + "\"," +
+                    "\"NumeroSerie\":\"" + (produtoEscolhido.NumeroSerie ?? "") + "\"}";
             }
             return "Erro";
         }
-    }
-
-    class ProdutoEscolhido
-    {
-        [BsonRepresentation(BsonType.ObjectId)]
-        [JsonProperty("Id")]
-        public string Id { get; set; }
-
-        [BsonElement("CodigoNFe")]
-        public string Codigo { get; set; }
-        [BsonElement("Nome")]
-        public string Nome { get; set; }
-        [BsonElement("PrecoVenda")]
-        public double Preco { get; set; }
-        [BsonElement("Marca")]
-        public string Marca { get; set; }
-        [BsonElement("NumeroSerie")]
-        public string NumeroSerie { get; set; }
-        [BsonElement("EAN_NFe")]
-        public string CodigoBarras { get; set; }
-        [BsonIgnore]
-        public string Lote { get; set; }
-        [BsonIgnore]
-        public int Quantidade { get; set; }
-    }
-
-    class OpcoesSelecionadas
-    {
-        public bool DadoLadoCodigoBarras { get; set; }
-        public bool ImprimirCodigoBarras { get; set; }
-        public bool ImprimirNumeroCodigoBarras { get; set; }
-        public bool ImprimirCodigo { get; set; }
-        public bool ImprimirNome { get; set; }
-        public bool ImprimirPreco { get; set; }
-        public bool ImprimirMarca { get; set; }
-        public bool ImprimirBorda { get; set; }
-        public bool ImprimirLote { get; set; }
-        public bool ImprimirNumeroSerie { get; set; }
     }
 }

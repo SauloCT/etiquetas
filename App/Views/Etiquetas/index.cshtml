@@ -34,13 +34,55 @@
         border-left: 3px solid #0d6efd;
         background-color: #f8f9fa;
     }
+
+    /* Estilo para manter largura do botão fixa */
+    .btn {
+        min-width: 120px; /* Aumentado para melhor acomodação */
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Container para os pontos com largura fixa */
+    .loading-dots {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 20px;
+        line-height: 20px;
+        visibility: hidden;
+    }
+
+    /* Animação dos pontos */
+    @@keyframes dots {
+        0% { content: ""; }
+        25% { content: "•"; }
+        50% { content: "••"; }
+        75% { content: "•••"; }
+        100% { content: ""; }
+    }
+
+    .loading-dots::after {
+        content: "";
+        animation: dots 1.5s infinite;
+        display: inline-block;
+    }
+
+    .loading-dots.show {
+        visibility: visible;
+    }
+
+    .button-text {
+        position: relative;
+    }
 </style>
 
 <div>
     <h1 class="display-4 text-center">@ViewData["Title"]</h1>
     <div class="text-end mb-3">
         <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
-            <i class="fas fa-question-circle"></i> Ajuda
+            <span class="button-text"><i class="fas fa-question-circle"></i> Ajuda</span>
         </button>
     </div>
 </div>
@@ -58,7 +100,7 @@
                     <h6>Campos Principais</h6>
                     <ul>
                         <li><strong>Empresa:</strong> Selecione a empresa para a qual as etiquetas serão geradas.</li>
-                        <li><strong>Tipo Etiqueta:</strong> Escolha o modelo de etiqueta que será utilizado na impressão.</li>
+                        <li><strong>Tipo de Etiqueta:</strong> Escolha o modelo de etiqueta que será utilizado na impressão.</li>
                     </ul>
                 </div>
 
@@ -78,7 +120,11 @@
                         <li><strong>Imprimir Numeração:</strong> Mostra o número do código de barras abaixo dele.</li>
                         <li><strong>Imprimir Código:</strong> Exibe o código do produto na etiqueta.</li>
                         <li><strong>Imprimir Nome:</strong> Mostra o nome do produto na etiqueta.</li>
-                        <li><strong>Imprimir Preço:</strong> Inclui o preço do produto na etiqueta.</li>
+                        <li><strong>Imprimir Preço:</strong> Inclui o preço do produto na etiqueta.
+                            <ul>
+                                <li><strong>como código:</strong> Quando marcada, converte o preço para um código de 6 dígitos (exemplo: R$ 32,50 torna-se "003250").</li>
+                            </ul>
+                        </li>
                         <li><strong>Imprimir Marca:</strong> Exibe a marca do produto na etiqueta.</li>
                         <li><strong>Imprimir Borda:</strong> Adiciona uma borda ao redor da etiqueta.</li>
                         <li><strong>Imprimir Lote:</strong> Inclui informações do lote na etiqueta.</li>
@@ -259,11 +305,21 @@
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirPreco" name="imprimirPreco" checked>
-                                <label class="form-check-label fw-bold" for="ImprimirPreco">
-                                    Imprimir Preço
-                                </label>
+                            <div class="form-check d-flex align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <input class="form-check-input" type="checkbox" value="true" id="ImprimirPreco" name="imprimirPreco" checked onchange="togglePrecoComoCodigo()">
+                                    <label class="form-check-label fw-bold ms-2" for="ImprimirPreco">
+                                        Imprimir Preço
+                                    </label>
+                                </div>
+                                <span id="precoComoCodigoContainer" class="ms-4" style="display: inline-block;">
+                                    (<span class="d-inline-flex align-items-center gap-1">
+                                        <input class="form-check-input me-1" type="checkbox" value="true" id="PrecoComoCodigo" name="precoComoCodigo" checked>
+                                        <label class="form-check-label" for="PrecoComoCodigo" style="white-space: nowrap;">
+                                            como código
+                                        </label>
+                                    </span>)
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -402,8 +458,12 @@
             </div>
             <br />
             <div class="float-end">
-                <button type="button" class="btn btn-primary" onclick="validarEAdicionar()" title="Adicionar produto à lista de etiquetas">Adicionar</button>
-                <button type="submit" class="btn btn-success" title="Finalizar e visualizar a lista de etiquetas">Finalizar</button>
+                <button type="button" class="btn btn-primary" onclick="validarEAdicionar()" title="Adicionar produto à lista de etiquetas" id="btnAdicionar">
+                    <span class="button-text">Adicionar</span><span class="loading-dots"></span>
+                </button>
+                <button type="button" class="btn btn-success" onclick="validarFinalizacao(event)" title="Finalizar e visualizar a lista de etiquetas" id="btnFinalizar">
+                    <span class="button-text">Finalizar</span><span class="loading-dots"></span>
+                </button>
                 <button type="reset" class="btn btn-danger" onclick="ResetForm()">Limpar</button>
             </div>
             <br />
@@ -473,6 +533,8 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+
+        togglePrecoComoCodigo();
     });
 
     function validarEAdicionar() {
@@ -483,6 +545,12 @@
             alert("O código e o nome do produto são obrigatórios para adicionar um item.");
             return;
         }
+        
+        // Show loading state
+        var btnAdicionar = document.getElementById('btnAdicionar');
+        btnAdicionar.disabled = true;
+        btnAdicionar.querySelector('.button-text').style.visibility = 'hidden';
+        btnAdicionar.querySelector('.loading-dots').classList.add('show');
         
         AdicionaItem();
     }
@@ -520,6 +588,7 @@
         
         if (produto === "" || produtoId === "") {
             window.alert("O campo produto ou código do produto deve estar preenchido.");
+            resetAddButton();
             return;
         }
         
@@ -556,8 +625,23 @@
                 
                 // Adiciona input hidden para o form com os valores iniciais
                 document.getElementById("form").innerHTML += '<input type="hidden" id="' + produto.Id + 'form" name="itens" value="' + produto.Id + ',1,,">'; // Inicializa com id, quantidade=1, lote vazio e numeroSerie vazio
+                
+                // Reset button state after successful addition
+                resetAddButton();
+            }).fail(function() {
+                alert("Erro ao adicionar o produto. Por favor, tente novamente.");
+                resetAddButton();
             });
+        } else {
+            resetAddButton();
         }
+    }
+
+    function resetAddButton() {
+        var btnAdicionar = document.getElementById('btnAdicionar');
+        btnAdicionar.disabled = false;
+        btnAdicionar.querySelector('.button-text').style.visibility = 'visible';
+        btnAdicionar.querySelector('.loading-dots').classList.remove('show');
     }
 
     RemoveItem = function (id) {
@@ -595,5 +679,44 @@
     ResetForm = function (){
         document.getElementById('Lista-de-itens').innerHTML = '';
         document.getElementById('form').innerHTML = '';
+    }
+
+    function validarFinalizacao(event) {
+        var tbody = document.getElementById('Lista-de-itens');
+        if (!tbody || tbody.rows.length === 0) {
+            alert('Adicione pelo menos um produto à lista antes de finalizar.');
+            return false;
+        }
+        
+        // Show loading state
+        var btnFinalizar = document.getElementById('btnFinalizar');
+        btnFinalizar.disabled = true;
+        btnFinalizar.querySelector('.button-text').style.visibility = 'hidden';
+        btnFinalizar.querySelector('.loading-dots').classList.add('show');
+        
+        // Submit the form
+        btnFinalizar.closest('form').submit();
+        
+        // Reset button state after a short delay (for when user comes back)
+        setTimeout(function() {
+            btnFinalizar.disabled = false;
+            btnFinalizar.querySelector('.button-text').style.visibility = 'visible';
+            btnFinalizar.querySelector('.loading-dots').classList.remove('show');
+        }, 2000);
+        
+        return true;
+    }
+
+    function togglePrecoComoCodigo() {
+        var imprimirPreco = document.getElementById('ImprimirPreco');
+        var precoComoCodigoContainer = document.getElementById('precoComoCodigoContainer');
+        var precoComoCodigo = document.getElementById('PrecoComoCodigo');
+        
+        if (imprimirPreco.checked) {
+            precoComoCodigoContainer.style.display = 'inline';
+        } else {
+            precoComoCodigoContainer.style.display = 'none';
+            precoComoCodigo.checked = false;
+        }
     }
 </script>
