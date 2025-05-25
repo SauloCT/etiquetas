@@ -14,10 +14,103 @@
         color: red;
         margin-left: 4px;
     }
+
+    .field-help {
+        display: inline-block;
+        margin-left: 5px;
+        color: #6c757d;
+        font-size: 0.875em;
+    }
+
+    .modal-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+
+    .instruction-section {
+        margin-bottom: 20px;
+        padding: 10px;
+        border-left: 3px solid #0d6efd;
+        background-color: #f8f9fa;
+    }
 </style>
 
 <div>
     <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+    <div class="text-end mb-3">
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+            <i class="fas fa-question-circle"></i> Ajuda
+        </button>
+    </div>
+</div>
+
+<!-- Modal de Ajuda -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">Guia de Uso - Criação de Etiquetas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="instruction-section">
+                    <h6>Campos Principais</h6>
+                    <ul>
+                        <li><strong>Empresa:</strong> Selecione a empresa para a qual as etiquetas serão geradas.</li>
+                        <li><strong>Tipo Etiqueta:</strong> Escolha o modelo de etiqueta que será utilizado na impressão.</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Conteúdo da Etiqueta</h6>
+                    <ul>
+                        <li><strong>Cliente/Fornecedor:</strong> Opcional - Vincule as etiquetas a um cliente ou fornecedor específico.</li>
+                        <li><strong>Tabela de Preço:</strong> Opcional - Selecione uma tabela de preços específica para os valores das etiquetas.</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Opções de Impressão</h6>
+                    <ul>
+                        <li><strong>Dados ao Lado do Código de Barras:</strong> Posiciona as informações ao lado do código de barras, economizando espaço vertical.</li>
+                        <li><strong>Imprimir Código de Barras:</strong> Inclui o código de barras na etiqueta.</li>
+                        <li><strong>Imprimir Numeração:</strong> Mostra o número do código de barras abaixo dele.</li>
+                        <li><strong>Imprimir Código:</strong> Exibe o código do produto na etiqueta.</li>
+                        <li><strong>Imprimir Nome:</strong> Mostra o nome do produto na etiqueta.</li>
+                        <li><strong>Imprimir Preço:</strong> Inclui o preço do produto na etiqueta.</li>
+                        <li><strong>Imprimir Marca:</strong> Exibe a marca do produto na etiqueta.</li>
+                        <li><strong>Imprimir Borda:</strong> Adiciona uma borda ao redor da etiqueta.</li>
+                        <li><strong>Imprimir Lote:</strong> Inclui informações do lote na etiqueta.</li>
+                        <li><strong>Utilizar Número de Série:</strong> Adiciona o número de série do produto na etiqueta.</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Adicionando Produtos</h6>
+                    <ul>
+                        <li><strong>Depósito:</strong> Opcional - Selecione o depósito de origem dos produtos.</li>
+                        <li><strong>Código do Produto:</strong> Digite ou selecione o código do produto - preenchimento automático do nome.</li>
+                        <li><strong>Nome do Produto:</strong> Digite ou selecione o nome do produto - preenchimento automático do código.</li>
+                        <li>Use o botão "Adicionar" para incluir o produto na lista.</li>
+                        <li>Ajuste a quantidade, lote e número de série conforme necessário na tabela.</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Finalizando</h6>
+                    <ul>
+                        <li><strong>Adicionar:</strong> Inclui um novo produto na lista de etiquetas.</li>
+                        <li><strong>Finalizar:</strong> Gera o arquivo de etiquetas para impressão.</li>
+                        <li><strong>Limpar:</strong> Remove todos os produtos da lista e reinicia o formulário.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div>
@@ -373,6 +466,12 @@
                     }
                 }
             }
+        });
+
+        // Inicializar tooltips do Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
 

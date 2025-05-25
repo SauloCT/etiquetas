@@ -1,4 +1,5 @@
 ﻿@using App.VendaERP.Core.Models
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 @{
     ViewData["Title"] = "Editar Modelo de Etiqueta";
     DtoEtiquetasPadroes modelo = null;
@@ -6,10 +7,112 @@
     {
         modelo = ViewBag.modelo;
     }
+    var imagePath = System.IO.Path.Combine(WebHostEnvironment.WebRootPath, "images", "medidas", "medidas.png");
+    var imageBase64 = "";
+    if (System.IO.File.Exists(imagePath))
+    {
+        var imageBytes = System.IO.File.ReadAllBytes(imagePath);
+        imageBase64 = Convert.ToBase64String(imageBytes);
+    }
 }
+
+<style>
+    .instruction-section {
+        margin-bottom: 20px;
+        padding: 10px;
+        border-left: 3px solid #0d6efd;
+        background-color: #f8f9fa;
+    }
+
+    .modal-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+
+    .field-diagram {
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        margin: 10px 0;
+        background-color: white;
+    }
+
+    .field-diagram img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
 
 <div>
     <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+    <div class="text-end mb-3">
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+            <i class="fas fa-question-circle"></i> Ajuda
+        </button>
+    </div>
+</div>
+
+<!-- Modal de Ajuda -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">Guia de Uso - Edição de Modelo de Etiqueta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="instruction-section">
+                    <h6>Configuração do Papel</h6>
+                    <ul>
+                        <li><strong>Papel:</strong> Selecione o formato do papel (A4, Letter ou personalizado)</li>
+                        <li><strong>Dimensões do Papel:</strong> As dimensões são preenchidas automaticamente para A4 e Letter, ou podem ser personalizadas</li>
+                    </ul>
+                    <div class="field-diagram text-center">
+                        <p class="text-muted">Diagrama do Papel</p>
+                        @if (!string.IsNullOrEmpty(imageBase64))
+                        {
+                            <img src="data:image/png;base64,@imageBase64" alt="Diagrama de medidas da etiqueta" class="img-fluid">
+                        }
+                        else
+                        {
+                            <p class="text-danger">Imagem não encontrada no caminho: @imagePath</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Dimensões da Etiqueta</h6>
+                    <ul>
+                        <li><strong>Largura e Altura:</strong> Definem o tamanho de cada etiqueta individual</li>
+                        <li><strong>Espaçamento:</strong> Define o espaço entre as etiquetas (horizontal e vertical)</li>
+                        <li><strong>Margens:</strong> Define o espaço entre a borda do papel e a primeira etiqueta</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Configurações de Impressão</h6>
+                    <ul>
+                        <li><strong>Zoom:</strong> Ajusta o tamanho geral da impressão (100 = tamanho real)</li>
+                        <li><strong>Tamanho das Fontes:</strong> Define o tamanho do texto e do preço separadamente</li>
+                        <li><strong>Altura do Código de Barras:</strong> Define a altura do código de barras na etiqueta</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Dicas Importantes</h6>
+                    <ul>
+                        <li>Meça as dimensões da etiqueta física com uma régua para maior precisão</li>
+                        <li>Faça testes de impressão para ajustar o zoom e tamanhos de fonte</li>
+                        <li>Considere a orientação do papel ao definir as dimensões</li>
+                        <li>Para etiquetas comerciais comuns, use as medidas padrão do fabricante</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @if (modelo != null)
@@ -46,51 +149,51 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="nome">Largura do Papel (cm)</label>
+                    <label for="larguraPapel">Largura do Papel (cm)</label>
                     <input type="number" class="form-control" id="larguraPapel" placeholder="Largura do Papel (cm)" name="larguraPapel" value="@modelo.LarguraPapel?.ToString("0.00").Replace(",",".")" step="0.01" @(modelo.Papel==TipoPapel.Outro?"":"readonly") min="0" required>
                 </div>
                 <div class="form-group">
-                    <label for="nome">Altura do Papel (cm)</label>
+                    <label for="alturaPapel">Altura do Papel (cm)</label>
                     <input type="number" class="form-control" id="alturaPapel" placeholder="Altura do Papel (cm)" name="alturaPapel" value="@modelo.AlturaPapel?.ToString("0.00").Replace(",",".")" step="0.01" @(modelo.Papel==TipoPapel.Outro?"":"readonly") min="0" required>
                 </div>
                 <div class="form-group">
-                    <label for="nome">Largura da Etiqueta (cm)</label>
+                    <label for="larguraEtiqueta">Largura da Etiqueta (cm)</label>
                     <input type="number" class="form-control" placeholder="Largura da Etiqueta (cm)" value="@modelo.Largura?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="larguraEtiqueta">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Altura da Etiqueta</label>
-                    <input type="number" class="form-control" placeholder="Altura da Etiqueta" value="@modelo.Altura?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="alturaEtiqueta">
+                    <label for="alturaEtiqueta">Altura da Etiqueta (cm)</label>
+                    <input type="number" class="form-control" placeholder="Altura da Etiqueta (cm)" value="@modelo.Altura?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="alturaEtiqueta">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Espaçamento Horizontal (cm)</label>
+                    <label for="espacamentoHorizontal">Espaçamento Horizontal (cm)</label>
                     <input type="number" class="form-control" placeholder="Espaçamento Horizontal (cm)" value="@modelo.EspacamentoHorizontal?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="espacamentoHorizontal">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Espaçamento Vertical (cm)</label>
+                    <label for="espacamentoVertical">Espaçamento Vertical (cm)</label>
                     <input type="number" class="form-control" placeholder="Espaçamento Vertical (cm)" value="@modelo.EspacamentoVertical?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="espacamentoVertical">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Margem Esquerda (cm)</label>
+                    <label for="margemEsquerda">Margem Esquerda (cm)</label>
                     <input type="number" class="form-control" placeholder="Margem Esquerda (cm)" value="@modelo.MargemEsquerda?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="margemEsquerda">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Margem Superio (cm)</label>
-                    <input type="number" class="form-control" placeholder="Margem Superio (cm)" value="@modelo.MargemSuperior?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="margemSuperior">
+                    <label for="margemSuperior">Margem Superior (cm)</label>
+                    <input type="number" class="form-control" placeholder="Margem Superior (cm)" value="@modelo.MargemSuperior?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="margemSuperior">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Zoom de Impressão</label>
-                    <input type="number" class="form-control" placeholder="Zoom de Impressão" value="@modelo.ZoomImpressao?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="zoomImpressao">
+                    <label for="zoomImpressao">Zoom de Impressão (%)</label>
+                    <input type="number" class="form-control" placeholder="Zoom de Impressão (%)" value="@modelo.ZoomImpressao?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="zoomImpressao">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Tamanho da Fonte da Escrita</label>
+                    <label for="tamanhoFonte">Tamanho da Fonte da Escrita</label>
                     <input type="number" class="form-control" placeholder="Tamanho da Fonte da Escrita" value="@modelo.TamanhoFonte" step="1" min="0" name="tamanhoFonte">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Tamanho da Fonte do Preço</label>
+                    <label for="tamanhoPreco">Tamanho da Fonte do Preço</label>
                     <input type="number" class="form-control" placeholder="Tamanho da Fonte do Preço" value="@modelo.TamanhoPreco" step="1" min="0" name="tamanhoPreco">
                 </div>
                 <div class="form-group">
-                    <label for="nome">Altura do Código de Barras (cm)</label>
+                    <label for="alturaBarras">Altura do Código de Barras (cm)</label>
                     <input type="number" class="form-control" placeholder="Altura do Código de Barras (cm)" value="@modelo.AlturaEAN?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="alturaBarras">
                 </div>
                 <div class="float-end">
@@ -100,29 +203,30 @@
             </form>
         </div>
     </div>
-    <script>
-        function atualizaTamanhoPapel() {
-            var papel = document.getElementById("papel").value;
-            var altura = document.getElementById("alturaPapel");
-            var largura = document.getElementById("larguraPapel");
-            switch (papel) {
-                case '0':
-                    altura.value = 29.7;
-                    altura.readonly = true;
-                    largura.value = 21.0;
-                    largura.readonly = true;
-                    break;
-                case '1':
-                    altura.value = 27.9;
-                    altura.readonly = true;
-                    largura.value = 21.6;
-                    largura.readonly = true;
-                    break;
-                case '2':
-                    altura.readonly = false;
-                    largura.readonly = false;
-                    break;
-            }
-        }
-    </script>
 }
+
+<script>
+    function atualizaTamanhoPapel() {
+        var papel = document.getElementById("papel").value;
+        var altura = document.getElementById("alturaPapel");
+        var largura = document.getElementById("larguraPapel");
+        switch (papel) {
+            case '0':
+                altura.value = 29.7;
+                altura.readonly = true;
+                largura.value = 21.0;
+                largura.readonly = true;
+                break;
+            case '1':
+                altura.value = 27.9;
+                altura.readonly = true;
+                largura.value = 21.6;
+                largura.readonly = true;
+                break;
+            case '2':
+                altura.readonly = false;
+                largura.readonly = false;
+                break;
+        }
+    }
+</script>

@@ -1,21 +1,139 @@
-﻿@{
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
+@{
     ViewData["Title"] = "Novo Modelo de Etiqueta";
+    var imagePath = System.IO.Path.Combine(WebHostEnvironment.WebRootPath, "images", "medidas", "medidas.png");
+    var imageBase64 = "";
+    if (System.IO.File.Exists(imagePath))
+    {
+        var imageBytes = System.IO.File.ReadAllBytes(imagePath);
+        imageBase64 = Convert.ToBase64String(imageBytes);
+    }
 }
+
+<style>
+    .help-icon {
+        color: #0d6efd;
+        cursor: pointer;
+        margin-left: 5px;
+    }
+
+    .help-icon:hover {
+        color: #0a58ca;
+    }
+
+    .instruction-section {
+        margin-bottom: 20px;
+        padding: 10px;
+        border-left: 3px solid #0d6efd;
+        background-color: #f8f9fa;
+    }
+
+    .modal-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+
+    .field-diagram {
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        margin: 10px 0;
+        background-color: white;
+    }
+
+    .field-diagram img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
 
 <div>
     <h1 class="display-4 text-center">@ViewData["Title"]</h1>
+    <div class="text-end mb-3">
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+            <i class="fas fa-question-circle"></i> Ajuda
+        </button>
+    </div>
 </div>
 
+<!-- Modal de Ajuda -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">Guia de Uso - Criação de Modelo de Etiqueta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="instruction-section">
+                    <h6>Configuração do Papel</h6>
+                    <ul>
+                        <li><strong>Papel:</strong> Selecione o formato do papel (A4, Letter ou personalizado)</li>
+                        <li><strong>Dimensões do Papel:</strong> As dimensões são preenchidas automaticamente para A4 e Letter, ou podem ser personalizadas</li>
+                    </ul>
+                    <div class="field-diagram text-center">
+                        <p class="text-muted">Diagrama do Papel</p>
+                        @if (!string.IsNullOrEmpty(imageBase64))
+                        {
+                            <img src="data:image/png;base64,@imageBase64" alt="Diagrama de medidas da etiqueta" class="img-fluid">
+                        }
+                        else
+                        {
+                            <p class="text-danger">Imagem não encontrada no caminho: @imagePath</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Dimensões da Etiqueta</h6>
+                    <ul>
+                        <li><strong>Largura e Altura:</strong> Definem o tamanho de cada etiqueta individual</li>
+                        <li><strong>Espaçamento:</strong> Define o espaço entre as etiquetas (horizontal e vertical)</li>
+                        <li><strong>Margens:</strong> Define o espaço entre a borda do papel e a primeira etiqueta</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Configurações de Impressão</h6>
+                    <ul>
+                        <li><strong>Zoom:</strong> Ajusta o tamanho geral da impressão (100 = tamanho real)</li>
+                        <li><strong>Tamanho das Fontes:</strong> Define o tamanho do texto e do preço separadamente</li>
+                        <li><strong>Altura do Código de Barras:</strong> Define a altura do código de barras na etiqueta</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Dicas Importantes</h6>
+                    <ul>
+                        <li>Meça as dimensões da etiqueta física com uma régua para maior precisão</li>
+                        <li>Faça testes de impressão para ajustar o zoom e tamanhos de fonte</li>
+                        <li>Considere a orientação do papel ao definir as dimensões</li>
+                        <li>Para etiquetas comerciais comuns, use as medidas padrão do fabricante</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-body">
         <form method="post" action="/Etiquetas/SaveNewModel">
             <div class="form-group">
-                <label for="nome">Nome</label>
-                <input type="text" class="form-control" id="nome" placeholder="Nome" name="nome" required>
+                <label for="nome">
+                    Nome
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Nome identificador do modelo de etiqueta"></i>
+                </label>
+                <input type="text" class="form-control" id="nome" placeholder="Nome do modelo" name="nome" required>
             </div>
             <div class="form-group">
-                <label for="Papel">Papel</label>
+                <label for="Papel">
+                    Papel
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Formato do papel: A4 (21,0 x 29,7 cm), Letter (21,6 x 27,9 cm) ou personalizado"></i>
+                </label>
                 <select class="form-control" id="papel" name="papel" onchange="atualizaTamanhoPapel()">
                     <option value="0" selected>A4 21,0 x 29,7 cm</option>
                     <option value="1">Letter 21,6 x 27,9 cm</option>
@@ -23,52 +141,88 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="nome">Largura do Papel (cm)</label>
-                <input type="number" class="form-control" id="larguraPapel" placeholder="Largura do Papel (cm)" name="larguraPapel" value="21.0" step="0.01" min="0" readonly required>
+                <label for="larguraPapel">
+                    Largura do Papel (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Largura total do papel em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="larguraPapel" placeholder="Largura do papel em cm" name="larguraPapel" value="21.0" step="0.01" min="0" readonly required>
             </div>
             <div class="form-group">
-                <label for="nome">Altura do Papel (cm)</label>
-                <input type="number" class="form-control" id="alturaPapel" placeholder="Altura do Papel (cm)" name="alturaPapel" value="29.7" step="0.01" min="0" readonly required>
+                <label for="alturaPapel">
+                    Altura do Papel (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Altura total do papel em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="alturaPapel" placeholder="Altura do papel em cm" name="alturaPapel" value="29.7" step="0.01" min="0" readonly required>
             </div>
             <div class="form-group">
-                <label for="nome">Largura da Etiqueta (cm)</label>
-                <input type="number" class="form-control" placeholder="Largura da Etiqueta (cm)" value="0.0" step="0.01" min="0" name="larguraEtiqueta">
+                <label for="larguraEtiqueta">
+                    Largura da Etiqueta (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Largura de cada etiqueta individual em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="larguraEtiqueta" placeholder="Largura da etiqueta em cm" value="0.0" step="0.01" min="0" name="larguraEtiqueta">
             </div>
             <div class="form-group">
-                <label for="nome">Altura da Etiqueta</label>
-                <input type="number" class="form-control" placeholder="Altura da Etiqueta" value="0.0" step="0.01" min="0" name="alturaEtiqueta">
+                <label for="alturaEtiqueta">
+                    Altura da Etiqueta (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Altura de cada etiqueta individual em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="alturaEtiqueta" placeholder="Altura da etiqueta em cm" value="0.0" step="0.01" min="0" name="alturaEtiqueta">
             </div>
             <div class="form-group">
-                <label for="nome">Espaçamento Horizontal (cm)</label>
-                <input type="number" class="form-control" placeholder="Espaçamento Horizontal (cm)" value="0.0" step="0.01" min="0" name="espacamentoHorizontal">
+                <label for="espacamentoHorizontal">
+                    Espaçamento Horizontal (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Espaço entre etiquetas na horizontal em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="espacamentoHorizontal" placeholder="Espaçamento horizontal em cm" value="0.0" step="0.01" min="0" name="espacamentoHorizontal">
             </div>
             <div class="form-group">
-                <label for="nome">Espaçamento Vertical (cm)</label>
-                <input type="number" class="form-control" placeholder="Espaçamento Vertical (cm)" value="0.0" step="0.01" min="0" name="espacamentoVertical">
+                <label for="espacamentoVertical">
+                    Espaçamento Vertical (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Espaço entre etiquetas na vertical em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="espacamentoVertical" placeholder="Espaçamento vertical em cm" value="0.0" step="0.01" min="0" name="espacamentoVertical">
             </div>
             <div class="form-group">
-                <label for="nome">Margem Esquerda (cm)</label>
-                <input type="number" class="form-control" placeholder="Margem Esquerda (cm)" value="0.0" step="0.01" min="0" name="margemEsquerda">
+                <label for="margemEsquerda">
+                    Margem Esquerda (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Distância da borda esquerda do papel até a primeira etiqueta"></i>
+                </label>
+                <input type="number" class="form-control" id="margemEsquerda" placeholder="Margem esquerda em cm" value="0.0" step="0.01" min="0" name="margemEsquerda">
             </div>
             <div class="form-group">
-                <label for="nome">Margem Superio (cm)</label>
-                <input type="number" class="form-control" placeholder="Margem Superio (cm)" value="0.0" step="0.01" min="0" name="margemSuperior">
+                <label for="margemSuperior">
+                    Margem Superior (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Distância da borda superior do papel até a primeira etiqueta"></i>
+                </label>
+                <input type="number" class="form-control" id="margemSuperior" placeholder="Margem superior em cm" value="0.0" step="0.01" min="0" name="margemSuperior">
             </div>
             <div class="form-group">
-                <label for="nome">Zoom de Impressão</label>
-                <input type="number" class="form-control" placeholder="Zoom de Impressão" min="0" name="zoomImpressao">
+                <label for="zoomImpressao">
+                    Zoom de Impressão (%)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Ajuste do tamanho da impressão (100 = tamanho real)"></i>
+                </label>
+                <input type="number" class="form-control" id="zoomImpressao" placeholder="Zoom de impressão em %" min="0" name="zoomImpressao">
             </div>
             <div class="form-group">
-                <label for="nome">Tamanho da Fonte da Escrita</label>
-                <input type="number" class="form-control" placeholder="Tamanho da Fonte da Escrita" step="1" min="0" name="tamanhoFonte">
+                <label for="tamanhoFonte">
+                    Tamanho da Fonte da Escrita
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Tamanho da fonte para textos gerais na etiqueta"></i>
+                </label>
+                <input type="number" class="form-control" id="tamanhoFonte" placeholder="Tamanho da fonte para textos" step="1" min="0" name="tamanhoFonte">
             </div>
             <div class="form-group">
-                <label for="nome">Tamanho da Fonte do Preço</label>
-                <input type="number" class="form-control" placeholder="Tamanho da Fonte do Preço" step="1" min="0" name="tamanhoPreco">
+                <label for="tamanhoPreco">
+                    Tamanho da Fonte do Preço
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Tamanho da fonte específico para o preço"></i>
+                </label>
+                <input type="number" class="form-control" id="tamanhoPreco" placeholder="Tamanho da fonte para preços" step="1" min="0" name="tamanhoPreco">
             </div>
             <div class="form-group">
-                <label for="nome">Altura do Código de Barras (cm)</label>
-                <input type="number" class="form-control" placeholder="Altura do Código de Barras (cm)" name="alturaBarras">
+                <label for="alturaBarras">
+                    Altura do Código de Barras (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Altura do código de barras em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="alturaBarras" placeholder="Altura do código de barras em cm" step="0.01" min="0" name="alturaBarras">
             </div>
             <div class="float-end">
                 <button type="submit" class="btn btn-success">Salvar</button>
@@ -77,7 +231,16 @@
         </form>
     </div>
 </div>
+
 <script>
+    // Inicializar tooltips do Bootstrap
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
     function atualizaTamanhoPapel(){
         var papel = document.getElementById("papel").value;
         var altura = document.getElementById("alturaPapel");
