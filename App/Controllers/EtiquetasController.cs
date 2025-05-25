@@ -242,5 +242,10 @@ namespace App.Controllers
             }
             return "Erro";
         }
+
+        public IActionResult Error()
+        {
+            return View("Error");
+        }
     }
 }
