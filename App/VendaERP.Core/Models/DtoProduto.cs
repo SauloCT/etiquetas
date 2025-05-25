@@ -12,14 +12,6 @@ namespace VendaERP.Core.Models
         {
             IPI_SituacaoTributaria = string.Empty;
             TipoPrecoFixo = ePrecoFixo.MVA_Porcentagem;
-            
-
-            if (ProdutoCaracteristicas == null)
-            {
-                ProdutoCaracteristicas = new List<CaracteristicaValor>();
-            }
-
-            if (ProdutoOpcoesAlimenticio == null) ProdutoOpcoesAlimenticio = new List<ProdutoOpcoesAlimenticio>();
         }
 
         [IndexedColumn()]
@@ -286,8 +278,6 @@ namespace VendaERP.Core.Models
         [BsonIgnore]
         public bool PossuiLotes { get; set; }
 
-        public DtoAtributosProduto[] Atributos { get; set; }
-
         public bool EhServico()
         {
             if (string.IsNullOrEmpty(Genero))
@@ -346,12 +336,6 @@ namespace VendaERP.Core.Models
         public int QuantidadeMaximaSabores { get; set; }
 
         public string ProdutoVariacaoPaiID { get; set; }
-
-        public List<CaracteristicaValor> ProdutoCaracteristicas { get; set; }
-
-        public List<ProdutoOpcoesAlimenticio> ProdutoOpcoesAlimenticio { get; set; }
-
-        
 
         public double? Isr { get; set; }
 
@@ -433,39 +417,5 @@ namespace VendaERP.Core.Models
     {
         Single,
         Multiple
-    }
-
-    [Serializable]
-    public class ProdutoOpcoesAlimenticio
-    {
-        //sempre igual a DtoProdutoOpcoesAlimenticio
-
-        public string Id { get; set; }
-
-        public string Code { get; set; }
-
-        public string Name { get; set; }
-
-        public bool Pause { get; set; }
-
-        public string Description { get; set; }
-
-        public string Image { get; set; }
-
-        public ProductFoodOptionType Type { get; set; }
-
-        public ProductFoodGroup Group { get; set; }
-
-        public List<ProductFoodOptionsPrice> Prices { get; set; }
-
-        public short Quantity { get; set; }
-
-        public double SalePrice { get; set; }
-
-        public double SaleTotalPrice { get; set; }
-
-        public double SaleDiscount { get; set; }
-
-        public double SaleAddition { get; set; }
     }
 }

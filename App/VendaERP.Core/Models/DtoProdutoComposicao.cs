@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace VendaERP.Core.Models
@@ -42,8 +40,6 @@ namespace VendaERP.Core.Models
 		public string GradeID { get; set; }
 
 		public string Grade { get; set; }
-
-		public List<AtributoMovimentacao> AtributosProduto { get; set; }
 
 		public bool IncidirImpostosNoCusto { get; set; }
 

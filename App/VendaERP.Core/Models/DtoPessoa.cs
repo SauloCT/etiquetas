@@ -180,14 +180,6 @@ namespace VendaERP.Core.Models
         [BsonIgnore]
         public string ArquivoTemporario { get; set; }
 
-        public DtoPessoaConta[] Contas { get; set; }
-
-        public DtoPessoaPendencia[] Pendencias { get; set; }
-
-        public DtoPessoaReferencia[] Referencias { get; set; }
-
-        // public DtoCredenciadoraTaxas[] CredenciadoraTaxas { get; set; }
-
         //////////////////////////Dados da credenciadora//////////////////////////////////////////////////
         public string CredenciadoraTipoIntegracao { get; set; }
 
@@ -261,17 +253,12 @@ namespace VendaERP.Core.Models
         public string CodigoOPAF { get; set; }
 
         [BsonIgnore]
-        public List<DtoPessoaContato> Contatos { get; set; }
-
-        [BsonIgnore]
         public bool EhVinculadaUsuario { get; set; }
 
         [BsonIgnore]
         public string UsuarioVinculado { get; set; }
 
         public int? WooCommerceCustomerID { get; set; }
-
-        public string RNTRC { get; set; }
 
         ///Dados de pagamento
         public string FormaPagamentoNome { get; set; }
