@@ -13,5 +13,6 @@ namespace App.Models
         public bool ImprimirBorda { get; set; }
         public bool ImprimirLote { get; set; }
         public bool ImprimirNumeroSerie { get; set; }
+        public bool GerarCodigosBarras { get; set; }
     }
 } 

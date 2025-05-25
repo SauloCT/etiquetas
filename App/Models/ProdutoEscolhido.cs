@@ -28,6 +28,9 @@ namespace App.Models
         [BsonElement("EAN_NFe")]
         public string CodigoBarras { get; set; }
         
+        [BsonElement("Tamanho")]
+        public string Tamanho { get; set; }
+        
         [BsonIgnore]
         public string Lote { get; set; }
         

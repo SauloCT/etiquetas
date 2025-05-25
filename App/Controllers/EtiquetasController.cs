@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Text.Json;
 using VendaERP.Core;
+using VendaERP.Core.Models;
 
 namespace App.Controllers
 {
@@ -106,7 +107,7 @@ namespace App.Controllers
             return Redirect("/Etiquetas/EditModel/" + id);
         }
         [HttpPost]
-        public IActionResult Baixar(string empresa, string etiqueta, string clienteFornecedor, string tabelaDePreco, string deposito, bool dadoLadoCodigoBarras, bool imprimirCodigoBarras, bool imprimirNumeroCodigoBarras, bool imprimirCodigo, bool imprimirNome, bool imprimirPreco, bool precoComoCodigo, bool imprimirMarca, bool imprimirBorda, bool imprimirLote, bool imprimirNumeroSerie, string[] itens)
+        public IActionResult Baixar(string empresa, string etiqueta, string clienteFornecedor, string tabelaDePreco, string deposito, bool dadoLadoCodigoBarras, bool imprimirCodigoBarras, bool imprimirNumeroCodigoBarras, bool imprimirCodigo, bool imprimirNome, bool imprimirPreco, bool precoComoCodigo, bool imprimirMarca, bool imprimirBorda, bool imprimirLote, bool imprimirNumeroSerie, bool gerarCodigosBarras, string[] itens)
         {
             try
             {
@@ -115,7 +116,7 @@ namespace App.Controllers
                     TempData["message"] = "Ao menos um item deve ser inserido";
                     return Redirect("/Etiquetas/Index");
                 }
-                string nomeEmpresa = null;
+                string? nomeEmpresa = null;
                 try
                 {
                     if(string.IsNullOrEmpty(empresa)){
@@ -135,7 +136,7 @@ namespace App.Controllers
                     return Redirect("/Etiquetas/Index");
                 }
 
-                DtoEtiquetasPadroes modelEtiqueta = null;
+                DtoEtiquetasPadroes? modelEtiqueta = null;
                 try
                 {
                     if (string.IsNullOrEmpty(etiqueta))
@@ -155,18 +156,46 @@ namespace App.Controllers
                     TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo modelo de etiqueta";
                     return Redirect("/Etiquetas/Index");
                 }
+                
                 List<ProdutoEscolhido> listaItens = new List<ProdutoEscolhido>();
                 foreach(var item in itens){
                     //prod[0] == id / prod[1] == quantidade / prod[2] == lote / prod[3] == numeroSerie
                     string[] prod = item.Split(',');
-                    var produdo = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == prod[0]).Project(new BsonDocument { { "_id", true }, { "CodigoNFe", true }, { "Nome", true }, { "PrecoVenda", true }, { "Marca", true }, { "EAN_NFe", true } }).FirstOrDefault().ToJson());
-                    if (produdo != null)
+                    
+                    // Incluindo o campo Tamanho na projeção para a geração de códigos
+                    var produtoDocument = _db._repositoryProduto.Collection.Find(x => x.Id == prod[0]).Project(new BsonDocument { 
+                        { "_id", true }, 
+                        { "CodigoNFe", true }, 
+                        { "Nome", true }, 
+                        { "PrecoVenda", true }, 
+                        { "Marca", true }, 
+                        { "EAN_NFe", true },
+                        { "Tamanho", true }  // Adicionado para geração de códigos
+                    }).FirstOrDefault();
+                    
+                    if (produtoDocument != null)
                     {
+                        var produdo = BsonSerializer.Deserialize<ProdutoEscolhido>(produtoDocument.ToJson());
                         produdo.Quantidade = int.Parse(prod[1]);
                         if (!string.IsNullOrEmpty(prod[2]))
                             produdo.Lote = prod[2];
                         if (!string.IsNullOrEmpty(prod[3]))
                             produdo.NumeroSerie = prod[3];
+
+                        // Se a opção de gerar códigos de barras estiver marcada e o produto não tiver código
+                        if (gerarCodigosBarras && string.IsNullOrEmpty(produdo.CodigoBarras))
+                        {
+                            var novoCodigoBarras = GerarCodigoBarras(empresa, produdo.Id);
+                            if (!string.IsNullOrEmpty(novoCodigoBarras))
+                            {
+                                produdo.CodigoBarras = novoCodigoBarras;
+                                
+                                // Atualizar o produto no banco de dados com o novo código
+                                var filter = Builders<DtoProduto>.Filter.Eq("_id", ObjectId.Parse(produdo.Id));
+                                var update = Builders<DtoProduto>.Update.Set("EAN_NFe", novoCodigoBarras);
+                                _db._repositoryProduto.Collection.UpdateOne(filter, update);
+                            }
+                        }
 
                         listaItens.Add(produdo);
                     }
@@ -184,7 +213,8 @@ namespace App.Controllers
                     ImprimirNumeroCodigoBarras = imprimirNumeroCodigoBarras,
                     ImprimirNumeroSerie = imprimirNumeroSerie,
                     ImprimirPreco = imprimirPreco,
-                    PrecoComoCodigo = precoComoCodigo
+                    PrecoComoCodigo = precoComoCodigo,
+                    GerarCodigosBarras = gerarCodigosBarras
                 };
 
                 // Se for uma requisição AJAX, retorna apenas a view parcial
@@ -215,6 +245,145 @@ namespace App.Controllers
                 return RedirectToAction("Index");
             }
         }
+
+        [HttpPost]
+        public JsonResult VerificarProdutosSemCodigo(string[] itens)
+        {
+            try
+            {
+                var produtosSemCodigo = new List<object>();
+                
+                foreach(var item in itens)
+                {
+                    string[] prod = item.Split(',');
+                    var produto = _db._repositoryProduto.Collection.Find(x => x.Id == prod[0])
+                        .Project(new BsonDocument { 
+                            { "_id", true }, 
+                            { "Nome", true }, 
+                            { "EAN_NFe", true } 
+                        }).FirstOrDefault();
+                    
+                    if (produto != null)
+                    {
+                        // Usar uma abordagem mais direta para acessar os valores
+                        string id = produto["_id"].ToString();
+                        string nome = "Nome não encontrado";
+                        string eanNfe = "";
+                        
+                        // Verificar se o campo Nome existe
+                        if (produto.Contains("Nome"))
+                        {
+                            var nomeValue = produto["Nome"];
+                            if (nomeValue != null && !nomeValue.IsBsonNull)
+                            {
+                                nome = nomeValue.ToString();
+                            }
+                        }
+                        
+                        // Verificar se o campo EAN_NFe existe
+                        if (produto.Contains("EAN_NFe"))
+                        {
+                            var eanValue = produto["EAN_NFe"];
+                            if (eanValue != null && !eanValue.IsBsonNull)
+                            {
+                                eanNfe = eanValue.ToString();
+                            }
+                        }
+                        
+                        if (string.IsNullOrEmpty(eanNfe))
+                        {
+                            produtosSemCodigo.Add(new { 
+                                Id = id,
+                                Nome = nome
+                            });
+                        }
+                    }
+                }
+                
+                return Json(new { 
+                    success = true, 
+                    produtos = produtosSemCodigo,
+                    total = produtosSemCodigo.Count 
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Gera um código de barras seguindo as regras específicas do sistema
+        /// Baseado na lógica do n8n que usa CodigoNFe, Tamanho e PrecoVenda
+        /// </summary>
+        /// <param name="empresaId">ID da empresa</param>
+        /// <param name="produtoId">ID do produto</param>
+        /// <returns>Código de barras gerado</returns>
+        private string? GerarCodigoBarras(string empresaId, string produtoId)
+        {
+            try
+            {
+                // Buscar o produto completo no banco para obter CodigoNFe, PrecoVenda e Tamanho
+                var produto = _db._repositoryProduto.Collection.Find(x => x.Id == produtoId)
+                    .Project(new BsonDocument { 
+                        { "CodigoNFe", true }, 
+                        { "PrecoVenda", true }, 
+                        { "Tamanho", true } 
+                    }).FirstOrDefault();
+                
+                if (produto == null)
+                {
+                    return null;
+                }
+
+                var produtoObj = BsonSerializer.Deserialize<dynamic>(produto.ToJson());
+
+                // Part1: CodigoNFe sem hífens
+                string part1 = produtoObj.CodigoNFe?.ToString()?.Replace("-", "") ?? "";
+
+                // Part2: Usar o campo Tamanho do produto ou "0" se não existir
+                string part2 = "0";
+                if (produtoObj.Tamanho != null)
+                {
+                    string tamanhoStr = produtoObj.Tamanho.ToString();
+                    if (!string.IsNullOrEmpty(tamanhoStr) && int.TryParse(tamanhoStr, out int tamanhoValue))
+                    {
+                        part2 = tamanhoValue.ToString();
+                    }
+                }
+
+                // Part3: PrecoVenda formatado (sem ponto decimal e sem vírgula)
+                double precoVenda = produtoObj.PrecoVenda != null ? (double)produtoObj.PrecoVenda : 0.0;
+                string part3 = precoVenda.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture).Replace(".", "");
+
+                // Zeros fixos conforme regra
+                string prefixZero = "0";      // Sempre começar com 0
+                string middleZero1 = "0";     // Zero entre CodigoNFe e TAMANHO
+                string middleZero2 = "0";     // Zero entre TAMANHO e PrecoVenda
+
+                // Concatena os valores sem preenchimento extra
+                string baseCode = prefixZero + part1 + middleZero1 + part2 + middleZero2 + part3;
+
+                // Calcula quantos zeros precisam ser adicionados entre TAMANHO e PrecoVenda
+                int totalLength = baseCode.Length;
+                int zerosNeeded = 14 - totalLength;
+
+                // Adiciona os zeros extras entre TAMANHO e PrecoVenda, se necessário
+                string paddingZeros = zerosNeeded > 0 ? new string('0', zerosNeeded) : "";
+
+                // Código final
+                string finalCode = prefixZero + part1 + middleZero1 + part2 + paddingZeros + middleZero2 + part3;
+
+                return finalCode.Trim();
+            }
+            catch (Exception ex)
+            {
+                // Log do erro se necessário
+                Console.WriteLine($"Erro ao gerar código de barras: {ex.Message}");
+                return null;
+            }
+        }
+
         [HttpPost]
         public string GetProduto(string deposito, string produto)
         {

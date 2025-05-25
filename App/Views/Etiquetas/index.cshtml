@@ -149,11 +149,57 @@
                         <li><strong>Adicionar:</strong> Inclui um novo produto na lista de etiquetas.</li>
                         <li><strong>Finalizar:</strong> Gera o arquivo de etiquetas para impressão.</li>
                         <li><strong>Limpar:</strong> Remove todos os produtos da lista e reinicia o formulário.</li>
+                        <li><strong>Gerar Códigos de Barras:</strong> Quando marcado, gera automaticamente códigos de barras para produtos que não possuem. Os códigos são gerados seguindo regras específicas baseadas no código do produto, tamanho e preço.</li>
                     </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h6>Geração de Códigos de Barras</h6>
+                    <p>O sistema pode gerar automaticamente códigos de barras para produtos que não possuem. A geração segue estas regras:</p>
+                    <ul>
+                        <li>Sempre inicia com "0"</li>
+                        <li>Usa o código do produto (sem hífens)</li>
+                        <li>Inclui o tamanho do produto (ou "0" se não informado)</li>
+                        <li>Adiciona o preço de venda formatado</li>
+                        <li>Preenche com zeros para atingir 14 dígitos totais</li>
+                    </ul>
+                    <p><strong>Exemplo:</strong> Produto código "123-4", tamanho "42", preço "R$ 89,90" → Código gerado: "01230420008990"</p>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Geração de Códigos -->
+<div class="modal fade" id="confirmGenerationModal" tabindex="-1" aria-labelledby="confirmGenerationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmGenerationModalLabel">Confirmar Geração de Códigos de Barras</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage">Serão gerados códigos de barras para <strong id="productCount">0</strong> <span id="productText">produtos</span>. Confirma essa geração?</p>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="toggleProductDetails()">
+                        <i class="fas fa-list me-2"></i><span id="detailsButtonText">Ver Detalhes</span>
+                    </button>
+                </div>
+                <div id="productDetails" class="mt-3" style="display: none;">
+                    <h6>Produtos que receberão códigos de barras:</h6>
+                    <ul id="productList" class="list-unstyled">
+                        <!-- Lista será preenchida dinamicamente -->
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cancelarGeracao()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarGeracao()">
+                    <i class="fas fa-check me-2"></i>Confirmar Geração
+                </button>
             </div>
         </div>
     </div>
@@ -264,9 +310,9 @@
                     <div class="row">
                         <div class="col-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="DadoLadoCodigoBarras" name="dadoLadoCodigoBarras">
-                                <label class="form-check-label fw-bold" for="DadoLadoCodigoBarras">
-                                    Dados ao Lado do Código de Barras
+                                <input class="form-check-input" type="checkbox" value="true" id="GerarCodigosBarras" name="gerarCodigosBarras" checked>
+                                <label class="form-check-label fw-bold" for="GerarCodigosBarras" data-bs-toggle="tooltip" data-bs-placement="top" title="Gera códigos de barras automaticamente para produtos sem código. Veja mais detalhes no menu Ajuda.">
+                                    Gerar Códigos de Barras
                                 </label>
                             </div>
                         </div>
@@ -290,12 +336,30 @@
                     <div class="row">
                         <div class="col-4">
                             <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="DadoLadoCodigoBarras" name="dadoLadoCodigoBarras">
+                                <label class="form-check-label fw-bold" for="DadoLadoCodigoBarras">
+                                    Dados ao Lado do Código de Barras
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirBorda" name="imprimirBorda" checked>
+                                <label class="form-check-label fw-bold" for="ImprimirBorda">
+                                    Imprimir Borda da Etiqueta
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="true" id="ImprimirCodigo" name="imprimirCodigo">
                                 <label class="form-check-label fw-bold" for="ImprimirCodigo">
                                     Imprimir Código
                                 </label>
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="true" id="ImprimirNome" name="imprimirNome" checked>
@@ -305,12 +369,38 @@
                             </div>
                         </div>
                         <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNumeroSerie" name="imprimirNumeroSerie">
+                                <label class="form-check-label fw-bold" for="ImprimirNumeroSerie">
+                                    Imprimir Número de Série
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirMarca" name="imprimirMarca">
+                                <label class="form-check-label fw-bold" for="ImprimirMarca">
+                                    Imprimir Marca
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirLote" name="imprimirLote">
+                                <label class="form-check-label fw-bold" for="ImprimirLote">
+                                    Imprimir Lote
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4">
                             <div class="form-check d-flex align-items-center">
                                 <div class="d-flex align-items-center">
                                     <input class="form-check-input" type="checkbox" value="true" id="ImprimirPreco" name="imprimirPreco" checked onchange="togglePrecoComoCodigo()">
                                     <label class="form-check-label fw-bold ms-2" for="ImprimirPreco">
-                                        Imprimir Preço
-                                    </label>
+                                    Imprimir Preço
+                                </label>
                                 </div>
                                 <span id="precoComoCodigoContainer" class="ms-4" style="display: inline-block;">
                                     (<span class="d-inline-flex align-items-center gap-1">
@@ -322,41 +412,8 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirMarca" name="imprimirMarca">
-                                <label class="form-check-label fw-bold" for="ImprimirMarca">
-                                    Imprimir Marca
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirBorda" name="imprimirBorda" checked>
-                                <label class="form-check-label fw-bold" for="ImprimirBorda">
-                                    Imprimir Borda
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirLote" name="imprimirLote">
-                                <label class="form-check-label fw-bold" for="ImprimirLote">
-                                    Imprimir Lote
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="true" id="ImprimirNumeroSerie" name="imprimirNumeroSerie">
-                                <label class="form-check-label fw-bold" for="ImprimirNumeroSerie">
-                                    Utilizar Número de Série
-                                </label>
-                            </div>
+                            <!-- Espaço vazio para manter alinhamento -->
                         </div>
                     </div>
                 </div>
@@ -458,13 +515,17 @@
             </div>
             <br />
             <div class="float-end">
-                <button type="button" class="btn btn-primary" onclick="validarEAdicionar()" title="Adicionar produto à lista de etiquetas" id="btnAdicionar">
-                    <span class="button-text">Adicionar</span><span class="loading-dots"></span>
-                </button>
-                <button type="button" class="btn btn-success" onclick="validarFinalizacao(event)" title="Finalizar e visualizar a lista de etiquetas" id="btnFinalizar">
-                    <span class="button-text">Finalizar</span><span class="loading-dots"></span>
-                </button>
-                <button type="reset" class="btn btn-danger" onclick="ResetForm()">Limpar</button>
+                <div class="d-flex align-items-center gap-3">
+                    <div>
+                        <button type="button" class="btn btn-primary" onclick="validarEAdicionar()" title="Adicionar produto à lista de etiquetas" id="btnAdicionar">
+                            <span class="button-text">Adicionar</span><span class="loading-dots"></span>
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="validarFinalizacao(event)" title="Finalizar e visualizar a lista de etiquetas" id="btnFinalizar">
+                            <span class="button-text">Finalizar</span><span class="loading-dots"></span>
+                        </button>
+                        <button type="reset" class="btn btn-danger" onclick="ResetForm()">Limpar</button>
+                    </div>
+                </div>
             </div>
             <br />
         </div>
@@ -688,6 +749,108 @@
             return false;
         }
         
+        var gerarCodigosBarras = document.getElementById('GerarCodigosBarras').checked;
+        
+        if (gerarCodigosBarras) {
+            // Verificar se há produtos sem código de barras
+            verificarProdutosSemCodigo();
+        } else {
+            // Prosseguir diretamente com a finalização
+            finalizarEtiquetas();
+        }
+        
+        return true;
+    }
+
+    function verificarProdutosSemCodigo() {
+        var itens = [];
+        var inputs = document.querySelectorAll('input[name="itens"]');
+        inputs.forEach(function(input) {
+            itens.push(input.value);
+        });
+        
+        if (itens.length === 0) {
+            alert('Nenhum produto encontrado na lista.');
+            return;
+        }
+        
+        // Show loading state
+        var btnFinalizar = document.getElementById('btnFinalizar');
+        btnFinalizar.disabled = true;
+        btnFinalizar.querySelector('.button-text').style.visibility = 'hidden';
+        btnFinalizar.querySelector('.loading-dots').classList.add('show');
+        
+        $.post('/Etiquetas/VerificarProdutosSemCodigo', { itens: itens }, function(response) {
+            if (response.success) {
+                if (response.total > 0) {
+                    // Mostrar modal de confirmação
+                    document.getElementById('productCount').textContent = response.total;
+                    
+                    // Ajustar texto singular/plural
+                    var productText = document.getElementById('productText');
+                    productText.textContent = response.total === 1 ? 'produto' : 'produtos';
+                    
+                    var productList = document.getElementById('productList');
+                    productList.innerHTML = '';
+                    
+                    response.produtos.forEach(function(produto) {
+                        var li = document.createElement('li');
+                        // Tentar ambos os formatos de propriedade
+                        var nomeProduto = produto.Nome || produto.nome || 'Produto sem nome';
+                        li.innerHTML = '<i class="fas fa-barcode text-primary me-2"></i>' + nomeProduto;
+                        li.className = 'mb-1';
+                        productList.appendChild(li);
+                    });
+                    
+                    // Reset button state
+                    resetFinalizarButton();
+                    
+                    // Show modal usando jQuery (mais compatível)
+                    $('#confirmGenerationModal').modal('show');
+                } else {
+                    // Nenhum produto sem código, prosseguir diretamente
+                    finalizarEtiquetas();
+                }
+            } else {
+                alert('Erro ao verificar produtos: ' + response.message);
+                resetFinalizarButton();
+            }
+        }).fail(function(xhr, status, error) {
+            alert('Erro ao verificar produtos sem código de barras.');
+            resetFinalizarButton();
+        });
+    }
+
+    function toggleProductDetails() {
+        var details = document.getElementById('productDetails');
+        var buttonText = document.getElementById('detailsButtonText');
+        
+        if (details.style.display === 'none') {
+            details.style.display = 'block';
+            buttonText.textContent = 'Ocultar Detalhes';
+        } else {
+            details.style.display = 'none';
+            buttonText.textContent = 'Ver Detalhes';
+        }
+    }
+
+    function cancelarGeracao() {
+        // Reset button state when canceling
+        resetFinalizarButton();
+        
+        // Hide modal using jQuery (more compatible)
+        $('#confirmGenerationModal').modal('hide');
+    }
+
+    function confirmarGeracao() {
+        // Close modal using jQuery (more compatible)
+        $('#confirmGenerationModal').modal('hide');
+        
+        // Proceed with finalization
+        finalizarEtiquetas();
+    }
+
+    function finalizarEtiquetas() {
         // Show loading state
         var btnFinalizar = document.getElementById('btnFinalizar');
         btnFinalizar.disabled = true;
@@ -699,12 +862,15 @@
         
         // Reset button state after a short delay (for when user comes back)
         setTimeout(function() {
-            btnFinalizar.disabled = false;
-            btnFinalizar.querySelector('.button-text').style.visibility = 'visible';
-            btnFinalizar.querySelector('.loading-dots').classList.remove('show');
+            resetFinalizarButton();
         }, 2000);
-        
-        return true;
+    }
+
+    function resetFinalizarButton() {
+        var btnFinalizar = document.getElementById('btnFinalizar');
+        btnFinalizar.disabled = false;
+        btnFinalizar.querySelector('.button-text').style.visibility = 'visible';
+        btnFinalizar.querySelector('.loading-dots').classList.remove('show');
     }
 
     function togglePrecoComoCodigo() {
