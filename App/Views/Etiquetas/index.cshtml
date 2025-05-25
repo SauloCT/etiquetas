@@ -8,6 +8,14 @@
     }
 }
 
+<style>
+    .required::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+
 <div>
     <h1 class="display-4 text-center">@ViewData["Title"]</h1>
 </div>
@@ -20,8 +28,9 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-6">
-                            <label for="Empresa" class="fw-bold">Empresa</label>
-                            <input type="text" class="form-control" id="Empresa" placeholder="Preencha o ID da empresa" list="empresas" name="empresa" required>
+                            <label for="EmpresaNome" class="fw-bold required">Empresa</label>
+                            <input type="hidden" id="EmpresaId" name="empresa" required>
+                            <input type="text" class="form-control" id="EmpresaNome" placeholder="Selecione a empresa" required>
                             <datalist id="empresas">
                                 @if (Model != null)
                                 {
@@ -29,15 +38,24 @@
                                     {
                                         foreach (var item in Model.empresas)
                                         {
-                                            <option value="@item.Id">@item.Nome</option>
+                                            <option value="@item.Nome" data-id="@item.Id"></option>
                                         }
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function() {
+                                                var firstEmpresa = "@Model.empresas.First().Nome";
+                                                var firstEmpresaId = "@Model.empresas.First().Id";
+                                                document.getElementById("EmpresaNome").value = firstEmpresa;
+                                                document.getElementById("EmpresaId").value = firstEmpresaId;
+                                            });
+                                        </script>
                                     }
                                 }
                             </datalist>
                         </div>
                         <div class="col-6">
-                            <label for="TipoEtiqueta" class="fw-bold">Tipo Etiqueta</label>
-                            <input type="text" class="form-control" id="TipoEtiqueta" placeholder="Preencha o ID do Topo de Etiqueta" list="modelosEtiquetas" name="etiqueta" required>
+                            <label for="TipoEtiquetaNome" class="fw-bold required">Tipo Etiqueta</label>
+                            <input type="hidden" id="TipoEtiquetaId" name="etiqueta" required>
+                            <input type="text" class="form-control" id="TipoEtiquetaNome" placeholder="Selecione o tipo de etiqueta" required>
                             <datalist id="modelosEtiquetas">
                                 @if (Model != null)
                                 {
@@ -45,8 +63,16 @@
                                     {
                                         foreach (var item in Model.modelosEtiquetas)
                                         {
-                                            <option value="@item.Id">@item.Nome</option>
+                                            <option value="@item.Nome" data-id="@item.Id"></option>
                                         }
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function() {
+                                                var firstModelo = "@Model.modelosEtiquetas.First().Nome";
+                                                var firstModeloId = "@Model.modelosEtiquetas.First().Id";
+                                                document.getElementById("TipoEtiquetaNome").value = firstModelo;
+                                                document.getElementById("TipoEtiquetaId").value = firstModeloId;
+                                            });
+                                        </script>
                                     }
                                 }
                             </datalist>
@@ -61,8 +87,9 @@
                     <hr />
                     <div class="row">
                         <div class="col-6">
-                            <label for="clienteFornecedor" class="fw-bold">Cliente / Fornecedor</label>
-                            <input type="text" class="form-control" id="ClienteFornecedor" aria-describedby="clienteFornecedorHelp" placeholder="Preencha o ID do cliente ou fornecedor" list="clientesFornecedores" name="clienteFornecedor">
+                            <label for="ClienteFornecedorNome" class="fw-bold">Cliente / Fornecedor</label>
+                            <input type="hidden" id="ClienteFornecedorId" name="clienteFornecedor">
+                            <input type="text" class="form-control" id="ClienteFornecedorNome" placeholder="Selecione o cliente ou fornecedor">
                             <datalist id="clientesFornecedores">
                                 @if (Model != null)
                                 {
@@ -70,15 +97,16 @@
                                     {
                                         foreach (var item in Model.clientes)
                                         {
-                                            <option value="@item.Id">@item.Nome - @item.Email</option>
+                                            <option value="@item.Nome" data-id="@item.Id">@item.Email</option>
                                         }
                                     }
                                 }
                             </datalist>
                         </div>
                         <div class="col-6">
-                            <label for="tabelaDePreco" class="fw-bold">Tabela de Preço</label>
-                            <input type="text" class="form-control" id="TabelaDePreco" aria-describedby="tabelaDePrecoHelp" placeholder="Preencha o ID da Tabela de Preço" list="tabelaDePreco" name="tabelaDePreco">
+                            <label for="TabelaPrecoNome" class="fw-bold">Tabela de Preço</label>
+                            <input type="hidden" id="TabelaPrecoId" name="tabelaDePreco">
+                            <input type="text" class="form-control" id="TabelaPrecoNome" placeholder="Selecione a tabela de preço">
                             <datalist id="tabelaDePreco">
                                 @if (Model != null)
                                 {
@@ -86,7 +114,7 @@
                                     {
                                         foreach (var item in Model.tabelaDePreco)
                                         {
-                                            <option value="@item.Id">@item.Nome</option>
+                                            <option value="@item.Nome" data-id="@item.Id"></option>
                                         }
                                     }
                                 }
@@ -214,8 +242,9 @@
                     <hr />
                     <div class="row">
                         <div class="col-4">
-                            <label for="Deposito" class="fw-bold">Depósito</label>
-                            <input type="text" class="form-control" id="Deposito" aria-describedby="depositoHelp" list="deposito">
+                            <label for="DepositoNome" class="fw-bold">Depósito</label>
+                            <input type="hidden" id="DepositoId" name="deposito">
+                            <input type="text" class="form-control" id="DepositoNome" placeholder="Selecione o depósito">
                             <datalist id="deposito">
                                 @if (Model != null)
                                 {
@@ -223,21 +252,35 @@
                                     {
                                         foreach (var item in Model.depositos)
                                         {
-                                            <option value="@item.Id">@item.Nome</option>
+                                            <option value="@item.Nome" data-id="@item.Id"></option>
                                         }
                                     }
                                 }
                             </datalist>
                         </div>
                         <div class="col-4">
-                            <label for="CodigoNFe" class="fw-bold">Código do Produto</label>
-                            <input type="text" class="form-control" id="CodigoNFe" aria-describedby="codigoHelp" list="codigoProduto">
+                            <label for="CodigoNFe" class="fw-bold required">Código do Produto</label>
+                            <input type="text" class="form-control" id="CodigoNFe" placeholder="Selecione o código do produto" list="codigoProduto">
                             <datalist id="codigoProduto">
                                 @if (Model != null)
                                 {
                                     if (Model.produtos != null && Model.produtos.Count > 0)
                                     {
-                                        foreach (var item in Model.produtos)
+                                        foreach (var item in Model.produtos
+                                            .OrderBy(p => {
+                                                var parts = p.CodigoNFe?.Split('-');
+                                                if (parts == null || parts.Length == 0) return (int.MaxValue, int.MaxValue);
+                                                
+                                                // Tenta converter a primeira parte
+                                                int.TryParse(parts[0], out int firstPart);
+                                                
+                                                // Se tem segunda parte, tenta converter
+                                                int secondPart = 0;
+                                                if (parts.Length > 1)
+                                                    int.TryParse(parts[1], out secondPart);
+                                                
+                                                return (firstPart, secondPart);
+                                            }))
                                         {
                                             <option value="@item.CodigoNFe" data-id="@item.Id" data-nome="@item.Nome">@item.Nome</option>
                                         }
@@ -246,14 +289,14 @@
                             </datalist>
                         </div>
                         <div class="col-4">
-                            <label for="Produto" class="fw-bold">Nome do Produto</label>
-                            <input type="text" class="form-control" id="Produto" aria-describedby="produtoHelp" list="produto">
+                            <label for="Produto" class="fw-bold required">Nome do Produto</label>
+                            <input type="text" class="form-control" id="Produto" placeholder="Selecione o nome do produto" list="produto">
                             <datalist id="produto">
                                 @if (Model != null)
                                 {
                                     if (Model.produtos != null && Model.produtos.Count > 0)
                                     {
-                                        foreach (var item in Model.produtos)
+                                        foreach (var item in Model.produtos.OrderBy(p => p.Nome))
                                         {
                                             <option value="@item.Nome" data-id="@item.Id" data-codigo="@item.CodigoNFe">@item.CodigoNFe</option>
                                         }
@@ -266,7 +309,7 @@
             </div>
             <br />
             <div class="float-end">
-                <button type="button" class="btn btn-primary" onclick="AdicionaItem()" title="Adicionar produto à lista de etiquetas">Adicionar</button>
+                <button type="button" class="btn btn-primary" onclick="validarEAdicionar()" title="Adicionar produto à lista de etiquetas">Adicionar</button>
                 <button type="submit" class="btn btn-success" title="Finalizar e visualizar a lista de etiquetas">Finalizar</button>
                 <button type="reset" class="btn btn-danger" onclick="ResetForm()">Limpar</button>
             </div>
@@ -274,9 +317,79 @@
         </div>
     </form>
 </div>
+
 <script>
+    // Função para sincronizar campos de nome com seus IDs
+    function setupFieldSync(nameFieldId, hiddenFieldId, datalistId) {
+        var nameField = document.getElementById(nameFieldId);
+        var hiddenField = document.getElementById(hiddenFieldId);
+        
+        nameField.setAttribute("list", datalistId);
+        
+        nameField.addEventListener("change", function() {
+            var datalist = document.getElementById(datalistId);
+            var options = datalist.getElementsByTagName("option");
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === this.value) {
+                    hiddenField.value = options[i].getAttribute("data-id");
+                    break;
+                }
+            }
+        });
+    }
+
+    // Configurar sincronização para todos os campos
+    document.addEventListener("DOMContentLoaded", function() {
+        setupFieldSync("EmpresaNome", "EmpresaId", "empresas");
+        setupFieldSync("TipoEtiquetaNome", "TipoEtiquetaId", "modelosEtiquetas");
+        setupFieldSync("ClienteFornecedorNome", "ClienteFornecedorId", "clientesFornecedores");
+        setupFieldSync("TabelaPrecoNome", "TabelaPrecoId", "tabelaDePreco");
+        setupFieldSync("DepositoNome", "DepositoId", "deposito");
+
+        // Sincronização entre código e nome do produto
+        document.getElementById("CodigoNFe").addEventListener("change", function() {
+            if (this.value !== "") {
+                // Procura o produto pelo código
+                var datalist = document.getElementById("codigoProduto");
+                var options = datalist.getElementsByTagName("option");
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].value === this.value) {
+                        document.getElementById("Produto").value = options[i].getAttribute("data-nome");
+                        break;
+                    }
+                }
+            }
+        });
+
+        document.getElementById("Produto").addEventListener("change", function() {
+            if (this.value !== "") {
+                // Procura o código pelo produto
+                var datalist = document.getElementById("produto");
+                var options = datalist.getElementsByTagName("option");
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].value === this.value) {
+                        document.getElementById("CodigoNFe").value = options[i].getAttribute("data-codigo");
+                        break;
+                    }
+                }
+            }
+        });
+    });
+
+    function validarEAdicionar() {
+        var codigo = document.getElementById("CodigoNFe").value;
+        var nome = document.getElementById("Produto").value;
+        
+        if (!codigo || !nome) {
+            alert("O código e o nome do produto são obrigatórios para adicionar um item.");
+            return;
+        }
+        
+        AdicionaItem();
+    }
+
     AdicionaItem = function () {
-        var deposito = document.getElementById("Deposito").value;
+        var deposito = document.getElementById("DepositoNome").value;
         var produto = document.getElementById("Produto").value;
         var codigoNFe = document.getElementById("CodigoNFe").value;
         var produtoId = "";
@@ -311,7 +424,7 @@
             return;
         }
         
-        document.getElementById("Deposito").value = "";
+        document.getElementById("DepositoNome").value = "";
         document.getElementById("Produto").value = "";
         document.getElementById("CodigoNFe").value = "";
         
@@ -379,35 +492,6 @@
         var numeroSerie = document.getElementById(id + "NumeroSerie").value || '';
         document.getElementById(id + "form").value = [id, quantidade, lote, numeroSerie].join(',');
     }
-
-    // Sincroniza os campos de produto e código
-    document.getElementById("CodigoNFe").addEventListener("change", function() {
-        if (this.value !== "") {
-            // Procura o produto pelo código
-            var datalist = document.getElementById("codigoProduto");
-            var options = datalist.getElementsByTagName("option");
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].value === this.value) {
-                    document.getElementById("Produto").value = options[i].getAttribute("data-nome");
-                    break;
-                }
-            }
-        }
-    });
-
-    document.getElementById("Produto").addEventListener("change", function() {
-        if (this.value !== "") {
-            // Procura o código pelo produto
-            var datalist = document.getElementById("produto");
-            var options = datalist.getElementsByTagName("option");
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].value === this.value) {
-                    document.getElementById("CodigoNFe").value = options[i].getAttribute("data-codigo");
-                    break;
-                }
-            }
-        }
-    });
 
     ResetForm = function (){
         document.getElementById('Lista-de-itens').innerHTML = '';
