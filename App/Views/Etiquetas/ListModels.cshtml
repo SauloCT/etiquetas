@@ -168,7 +168,6 @@
             data: { "id": id },
             success: function(data) {
                 if (data.success) {
-                    alert(data.message || "Modelo removido com sucesso!");
                     location.reload();
                 } else {
                     alert(data.message || "Erro ao remover o modelo.");
