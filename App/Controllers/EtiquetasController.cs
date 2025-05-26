@@ -23,39 +23,42 @@ namespace App.Controllers
         private readonly IEtiquetasService _etiquetasService;
         private readonly IValidationService _validationService;
         private readonly ILogger<EtiquetasController> _logger;
-        private readonly Autocompletar _autocompletar;
+        private readonly IAutocompletarService _autocompletarService;
 
         public EtiquetasController(
             IEtiquetasService etiquetasService,
             IValidationService validationService,
             ILogger<EtiquetasController> logger,
-            DBAccess dbAccess)
+            IAutocompletarService autocompletarService)
         {
             _etiquetasService = etiquetasService;
             _validationService = validationService;
             _logger = logger;
-            _autocompletar = new Autocompletar(dbAccess);
+            _autocompletarService = autocompletarService;
         }
 
         /// <summary>
         /// Página principal de etiquetas
         /// </summary>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             try
             {
                 _logger.LogDebug("Acessando página principal de etiquetas");
 
-            if (TempData.ContainsKey("message"))
-                ViewBag.message = TempData["message"];
+                if (TempData.ContainsKey("message"))
+                    ViewBag.message = TempData["message"];
 
-                return View(_autocompletar);
+                var autocompletarData = await _autocompletarService.GetAutocompletarDataAsync();
+                return View(autocompletarData);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao carregar página principal de etiquetas");
                 TempData["message"] = "Erro interno do servidor. Tente novamente.";
-                return View(_autocompletar);
+                
+                // Em caso de erro, retornar dados vazios
+                return View(new Autocompletar());
             }
         }
 
