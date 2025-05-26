@@ -5,7 +5,6 @@ namespace VendaERP.Core.Models
 {
     public class DtoEmpresa : EntityLastUpdate
     {
-        //public string EmpresaID { get; set; }
         public string? Gerenciador { get; set; }
 
 
@@ -106,8 +105,7 @@ namespace VendaERP.Core.Models
 
         public string? DepositoPadrao { get; set; }
 
-        /***************************PDV***************************************/
-
+        // Configurações PDV
         public string? TabelaPrecoPDVID { get; set; }
 
         public string? TabelaPrecoPDV { get; set; }
@@ -137,8 +135,7 @@ namespace VendaERP.Core.Models
 
         public bool HabilitarBalancaPDV { get; set; }
 
-        /**********************************************************************/
-
+        // Configurações Gerais
         public string? InformativoPadraoOS { get; set; }
 
         public string? Contador_Nome { get; set; }
@@ -185,7 +182,7 @@ namespace VendaERP.Core.Models
 
         public bool EhEmpresaDeCobranca { get; set; }
 
-        /**************************** DADOS INVOICY (NFSe)**************************************************************/
+        // Dados Invoicy (NFSe)
         public bool NaoPermitirEmissaoNFSe { get; set; }
 
         public string? CodCKInvoicy { get; set; }
@@ -208,20 +205,17 @@ namespace VendaERP.Core.Models
 
         public string? SenhaWebServicePrefeitura { get; set; }
 
-        /***************************************************************************************************************/
         [BsonIgnore]
         public string? ArquivoTemporarioID { get; set; }
 
-        /**************************** E-mails Padrões**************************************************************/
-
+        // E-mails Padrões
         public string? EmailPadraoCompras { get; set; }
 
         public string? EmailPadraoPedidos { get; set; }
 
         public string? EmailPadraoNFe { get; set; }
 
-        /****************************Formatação E-mails Padrões**************************************************************/
-
+        // Formatação E-mails Padrões
         public string? EmailAssuntoNFE { get; set; }
 
         public string? EmailMensagemNFE { get; set; }
@@ -254,8 +248,7 @@ namespace VendaERP.Core.Models
 
         public string? EmailMensagemReciboOS { get; set; }
 
-        /****************************Dados SIGEP WEB***************************************************/
-
+        // Dados SIGEP WEB
         public string? SIGEPNumeroContrato { get; set; }
 
         public string? SIGEPNumeroCartao { get; set; }
@@ -274,10 +267,10 @@ namespace VendaERP.Core.Models
 
         public int SIGEPPrazoMinimoEntrega { get; set; }
 
-        /****************************Dados Para Envio de Email***************************************************/
+        // Dados Para Envio de Email
         public DtoConfiguracaoEnvioEmail ConfiguracaoEmail { get; set; }
 
-        /*****************************Dados de Autorização do XML ******************************************/
+        // Dados de Autorização do XML
         public bool AutorizarDadosXML { get; set; }
 
         public string? VersaoDadosAplicativoComercial { get; set; }

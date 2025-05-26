@@ -585,7 +585,13 @@ namespace App.Services
         {
             try
             {
-                var filter = Builders<DtoProduto>.Filter.Eq("_id", ObjectId.Parse(produtoId));
+                // Validação de entrada para prevenir injection
+                if (string.IsNullOrWhiteSpace(produtoId) || !ObjectId.TryParse(produtoId, out ObjectId objectId))
+                {
+                    throw new ArgumentException("ID do produto inválido", nameof(produtoId));
+                }
+
+                var filter = Builders<DtoProduto>.Filter.Eq("_id", objectId);
                 var update = Builders<DtoProduto>.Update.Set("EAN_NFe", codigoBarras);
                 
                 await Task.Run(() => _dbAccess._repositoryProduto.Collection.UpdateOne(filter, update));

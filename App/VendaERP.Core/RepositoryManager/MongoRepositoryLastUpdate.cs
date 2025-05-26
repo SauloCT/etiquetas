@@ -38,12 +38,26 @@ namespace VendaERP.Core
 
         public T GetById(string id)
         {
-            if (typeof(T).IsSubclassOf(typeof(EntityLastUpdate)))
+            // Validação de entrada para prevenir injection
+            if (string.IsNullOrWhiteSpace(id))
             {
-                return this.collection.Find<T>("{_id:ObjectId(\"" + id + "\")}").FirstOrDefault();
+                return default(T);
             }
 
-            return this.collection.Find<T>("{_id:\"" + id + "\"}").FirstOrDefault();
+            if (typeof(T).IsSubclassOf(typeof(EntityLastUpdate)))
+            {
+                // Validação de ObjectId e uso de filtro tipado
+                if (!ObjectId.TryParse(id, out ObjectId objectId))
+                {
+                    return default(T);
+                }
+                var filter = Builders<T>.Filter.Eq("_id", objectId);
+                return this.collection.Find(filter).FirstOrDefault();
+            }
+
+            // Para entidades que não usam ObjectId, usar filtro tipado também
+            var stringFilter = Builders<T>.Filter.Eq("_id", id);
+            return this.collection.Find(stringFilter).FirstOrDefault();
         }
 
         public T GetSingle(Expression<Func<T, bool>> criteria)
@@ -80,10 +94,10 @@ namespace VendaERP.Core
 
         public T Update(T entity)
         {
-            if (!string.IsNullOrEmpty(entity.Id))
+            if (!string.IsNullOrEmpty(entity.Id) && ObjectId.TryParse(entity.Id, out ObjectId objectId))
             {
                 entity.LastUpdate = DateTime.Now;
-                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(entity.Id));
+                var filter = Builders<T>.Filter.Eq("_id", objectId);
                 collection.ReplaceOne(filter, entity);
             }
             return entity;
@@ -91,10 +105,16 @@ namespace VendaERP.Core
 
         public void Delete(string id)
         {
+            if (string.IsNullOrWhiteSpace(id))
+                return;
+
             if (typeof(T).IsSubclassOf(typeof(EntityLastUpdate)))
             {
-                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
-                collection.DeleteOne(filter);
+                if (ObjectId.TryParse(id, out ObjectId objectId))
+                {
+                    var filter = Builders<T>.Filter.Eq("_id", objectId);
+                    collection.DeleteOne(filter);
+                }
             }
             else
             {

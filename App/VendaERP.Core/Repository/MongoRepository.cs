@@ -85,12 +85,26 @@
         /// <returns>The Entity T.</returns>
         public T GetById(string id)
         {
-            if (typeof(T).IsSubclassOf(typeof(Entity)))
+            // Validação de entrada para prevenir injection
+            if (string.IsNullOrWhiteSpace(id))
             {
-                return this.collection.Find<T>("{_id:ObjectId(\"" + id + "\")}").FirstOrDefault(); 
+                return default(T);
             }
 
-            return this.collection.Find<T>("{_id:\"" + id + "\"}").FirstOrDefault();
+            if (typeof(T).IsSubclassOf(typeof(Entity)))
+            {
+                // Validação de ObjectId e uso de filtro tipado
+                if (!ObjectId.TryParse(id, out ObjectId objectId))
+                {
+                    return default(T);
+                }
+                var filter = Builders<T>.Filter.Eq("_id", objectId);
+                return this.collection.Find(filter).FirstOrDefault();
+            }
+
+            // Para entidades que não usam ObjectId, usar filtro tipado também
+            var stringFilter = Builders<T>.Filter.Eq("_id", id);
+            return this.collection.Find(stringFilter).FirstOrDefault();
         }
 
         /// <summary>
@@ -157,9 +171,9 @@
         /// <returns>The updated entity.</returns>
         public T Update(T entity)
         {
-            if (!string.IsNullOrEmpty(entity.Id))
+            if (!string.IsNullOrEmpty(entity.Id) && ObjectId.TryParse(entity.Id, out ObjectId objectId))
             {
-                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(entity.Id));
+                var filter = Builders<T>.Filter.Eq("_id", objectId);
                 this.collection.ReplaceOne(filter, entity);
             }
             return entity;
@@ -171,9 +185,9 @@
         /// <returns>The updated entity.</returns>
         public T UpdateSemLog(T entity)
         {
-            if (!string.IsNullOrEmpty(entity.Id))
+            if (!string.IsNullOrEmpty(entity.Id) && ObjectId.TryParse(entity.Id, out ObjectId objectId))
             {
-                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(entity.Id));
+                var filter = Builders<T>.Filter.Eq("_id", objectId);
                 this.collection.ReplaceOne(filter, entity);
             }
             return entity;
@@ -185,10 +199,16 @@
         /// <param name="id">The string representation of the entity's id.</param>
         public void Delete(string id, bool IgnorarPermissaoUsuario)
         {
+            if (string.IsNullOrWhiteSpace(id))
+                return;
+
             if (typeof(T).IsSubclassOf(typeof(Entity)))
             {
-                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
-                this.collection.DeleteOne(filter);
+                if (ObjectId.TryParse(id, out ObjectId objectId))
+                {
+                    var filter = Builders<T>.Filter.Eq("_id", objectId);
+                    this.collection.DeleteOne(filter);
+                }
             }
             else
             {
