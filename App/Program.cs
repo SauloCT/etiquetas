@@ -2,8 +2,20 @@ using VendaERP.Core;
 using App.Services;
 using App.Services.Interfaces;
 using App.Models;
+using App.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("MongoConnection"));
 
@@ -29,6 +41,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Middleware de tratamento de erros
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseRouting();
 

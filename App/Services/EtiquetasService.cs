@@ -1,6 +1,7 @@
 using App.Models;
 using App.Services.Interfaces;
 using App.VendaERP.Core.Models;
+using static App.Services.Interfaces.IEtiquetasService;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -23,20 +24,28 @@ namespace App.Services
             IValidationService validationService,
             ILogger<EtiquetasService> logger)
         {
-            _dbAccess = dbAccess;
-            _validationService = validationService;
-            _logger = logger;
+            _dbAccess = dbAccess ?? throw new ArgumentNullException(nameof(dbAccess));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<DtoEtiquetasPadroes> CriarModeloAsync(DtoEtiquetasPadroes modelo)
         {
             try
             {
-                _logger.LogInformation("Iniciando criação de modelo de etiqueta: {Nome}", modelo.Nome);
+                _logger.LogInformation("Iniciando criação de modelo de etiqueta: {Nome}", modelo?.Nome);
+
+                if (modelo == null)
+                {
+                    _logger.LogWarning("Tentativa de criar modelo nulo");
+                    throw new ArgumentNullException(nameof(modelo), "Modelo não pode ser nulo");
+                }
 
                 var validation = _validationService.ValidarModelo(modelo);
                 if (!validation.IsValid)
                 {
+                    _logger.LogWarning("Validação falhou para modelo: {Nome}. Erros: {Erros}", 
+                        modelo.Nome, string.Join(", ", validation.Errors));
                     throw new ArgumentException($"Dados inválidos: {validation.ErrorMessage}");
                 }
 
@@ -51,12 +60,15 @@ namespace App.Services
 
                 if (modeloExistente != null)
                 {
+                    _logger.LogWarning("Tentativa de criar modelo com nome duplicado: {Nome}", modelo.Nome);
                     throw new InvalidOperationException($"Já existe um modelo com o nome '{modelo.Nome}'");
                 }
 
                 await Task.Run(() => _dbAccess._repositoryEtiquetasPadroes.Collection.InsertOne(modelo));
 
-                _logger.LogInformation("Modelo de etiqueta criado com sucesso. ID: {Id}", modelo.Id);
+                _logger.LogInformation("Modelo de etiqueta criado com sucesso. ID: {Id}, Nome: {Nome}", 
+                    modelo.Id, modelo.Nome);
+                
                 return modelo;
             }
             catch (ArgumentException)
@@ -379,9 +391,16 @@ namespace App.Services
             {
                 _logger.LogDebug("Buscando produto. ID: {Produto}, Depósito: {Deposito}", produto, deposito);
 
+                if (string.IsNullOrWhiteSpace(produto))
+                {
+                    _logger.LogWarning("ID do produto está vazio ou nulo");
+                    throw new ArgumentException("ID do produto é obrigatório", nameof(produto));
+                }
+
                 var validation = _validationService.ValidarId(produto, "ID do produto");
                 if (!validation.IsValid)
                 {
+                    _logger.LogWarning("ID do produto inválido: {Produto}", produto);
                     throw new ArgumentException(validation.ErrorMessage);
                 }
 
@@ -404,12 +423,25 @@ namespace App.Services
                 }
 
                 var produtoEscolhido = BsonSerializer.Deserialize<ProdutoEscolhido>(produtoDocument.ToJson());
+                
+                _logger.LogDebug("Produto encontrado com sucesso. ID: {Produto}, Nome: {Nome}", 
+                    produto, produtoEscolhido.Nome);
+                
                 return produtoEscolhido;
+            }
+            catch (ArgumentException)
+            {
+                throw; // Re-throw validation errors
+            }
+            catch (MongoDB.Driver.MongoException ex)
+            {
+                _logger.LogError(ex, "Erro do MongoDB ao buscar produto. ID: {Produto}", produto);
+                throw new InvalidOperationException("Erro de conexão com o banco de dados. Tente novamente.", ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao buscar produto. ID: {Produto}", produto);
-                throw;
+                _logger.LogError(ex, "Erro inesperado ao buscar produto. ID: {Produto}", produto);
+                throw new InvalidOperationException("Erro interno do servidor. Tente novamente.", ex);
             }
         }
 

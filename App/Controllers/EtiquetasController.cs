@@ -1,6 +1,7 @@
 ﻿using App.Models;
 using App.Services.Interfaces;
 using App.VendaERP.Core.Models;
+using static App.Services.Interfaces.IEtiquetasService;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -31,10 +32,10 @@ namespace App.Controllers
             ILogger<EtiquetasController> logger,
             IAutocompletarService autocompletarService)
         {
-            _etiquetasService = etiquetasService;
-            _validationService = validationService;
-            _logger = logger;
-            _autocompletarService = autocompletarService;
+            _etiquetasService = etiquetasService ?? throw new ArgumentNullException(nameof(etiquetasService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _autocompletarService = autocompletarService ?? throw new ArgumentNullException(nameof(autocompletarService));
         }
 
         /// <summary>
@@ -44,20 +45,20 @@ namespace App.Controllers
         {
             try
             {
-                _logger.LogDebug("Acessando página principal de etiquetas");
+                _logger.LogInformation("Acessando página principal de etiquetas");
 
                 if (TempData.ContainsKey("message"))
                     ViewBag.message = TempData["message"];
 
                 var autocompletarData = await _autocompletarService.GetAutocompletarDataAsync();
+                
+                _logger.LogDebug("Dados de autocompletar carregados com sucesso");
                 return View(autocompletarData);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao carregar página principal de etiquetas");
-                TempData["message"] = "Erro interno do servidor. Tente novamente.";
-                
-                // Em caso de erro, retornar dados vazios
+                TempData["message"] = "Erro ao carregar a página. Tente novamente.";
                 return View(new Autocompletar());
             }
         }
@@ -97,19 +98,8 @@ namespace App.Controllers
                 // Validações básicas antes de criar o modelo
                 if (string.IsNullOrWhiteSpace(nome))
                 {
+                    _logger.LogWarning("Tentativa de criar modelo sem nome");
                     TempData["message"] = "Nome do modelo é obrigatório.";
-                    return RedirectToAction("NewModel");
-                }
-
-                if (string.IsNullOrWhiteSpace(papel))
-                {
-                    TempData["message"] = "Tipo de papel é obrigatório.";
-                    return RedirectToAction("NewModel");
-                }
-
-                if (string.IsNullOrWhiteSpace(larguraPapel) || string.IsNullOrWhiteSpace(alturaPapel))
-                {
-                    TempData["message"] = "Dimensões do papel são obrigatórias.";
                     return RedirectToAction("NewModel");
                 }
 
@@ -121,9 +111,10 @@ namespace App.Controllers
 
                 var modeloCriado = await _etiquetasService.CriarModeloAsync(modelo);
 
+                _logger.LogInformation("Modelo criado com sucesso. ID: {Id}, Nome: {Nome}", 
+                    modeloCriado.Id, modeloCriado.Nome);
+                
                 TempData["message"] = "Modelo criado com sucesso!";
-                _logger.LogInformation("Modelo criado com sucesso. ID: {Id}", modeloCriado.Id);
-
                 return RedirectToAction("ListModels");
             }
             catch (ArgumentException ex)
@@ -132,16 +123,10 @@ namespace App.Controllers
                 TempData["message"] = $"Erro de validação: {ex.Message}";
                 return RedirectToAction("NewModel");
             }
-            catch (FormatException ex)
+            catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Formato inválido ao criar modelo: {Nome}", nome);
-                TempData["message"] = "Formato de dados inválido. Verifique os valores numéricos.";
-                return RedirectToAction("NewModel");
-            }
-            catch (MongoDB.Driver.MongoException ex)
-            {
-                _logger.LogError(ex, "Erro de banco de dados ao criar modelo: {Nome}", nome);
-                TempData["message"] = "Erro de conexão com o banco de dados. Tente novamente.";
+                _logger.LogWarning(ex, "Operação inválida ao criar modelo: {Nome}", nome);
+                TempData["message"] = ex.Message;
                 return RedirectToAction("NewModel");
             }
             catch (Exception ex)
@@ -472,6 +457,9 @@ namespace App.Controllers
                     return Json(new { error = "Produto não encontrado" });
                 }
 
+                _logger.LogDebug("Produto encontrado com sucesso. ID: {Produto}, Nome: {Nome}", 
+                    produto, produtoEscolhido.Nome);
+
                 // Retornar objeto JSON estruturado
                 var resultado = new
                 {
@@ -553,18 +541,18 @@ namespace App.Controllers
                 {
                     Nome = nome,
                     Papel = tipoPapel,
-                    LarguraPapel = larguraPapelValue.Value,
-                    AlturaPapel = alturaPapelValue.Value,
-                    Largura = _validationService.ValidarEConverterDecimal(larguraEtiqueta, "Largura da etiqueta"),
-                    Altura = _validationService.ValidarEConverterDecimal(alturaEtiqueta, "Altura da etiqueta"),
-                    EspacamentoHorizontal = _validationService.ValidarEConverterDecimal(espacamentoHorizontal, "Espaçamento horizontal"),
-                    EspacamentoVertical = _validationService.ValidarEConverterDecimal(espacamentoVertical, "Espaçamento vertical"),
-                    MargemEsquerda = _validationService.ValidarEConverterDecimal(margemEsquerda, "Margem esquerda"),
-                    MargemSuperior = _validationService.ValidarEConverterDecimal(margemSuperior, "Margem superior"),
-                    ZoomImpressao = _validationService.ValidarEConverterDecimal(zoomImpressao, "Zoom de impressão"),
+                    LarguraPapel = (double)larguraPapelValue.Value,
+                    AlturaPapel = (double)alturaPapelValue.Value,
+                    Largura = (double?)_validationService.ValidarEConverterDecimal(larguraEtiqueta, "Largura da etiqueta"),
+                    Altura = (double?)_validationService.ValidarEConverterDecimal(alturaEtiqueta, "Altura da etiqueta"),
+                    EspacamentoHorizontal = (double?)_validationService.ValidarEConverterDecimal(espacamentoHorizontal, "Espaçamento horizontal"),
+                    EspacamentoVertical = (double?)_validationService.ValidarEConverterDecimal(espacamentoVertical, "Espaçamento vertical"),
+                    MargemEsquerda = (double?)_validationService.ValidarEConverterDecimal(margemEsquerda, "Margem esquerda"),
+                    MargemSuperior = (double?)_validationService.ValidarEConverterDecimal(margemSuperior, "Margem superior"),
+                    ZoomImpressao = (double?)_validationService.ValidarEConverterDecimal(zoomImpressao, "Zoom de impressão"),
                     TamanhoFonte = tamanhoFonte,
                     TamanhoPreco = tamanhoPreco,
-                    AlturaEAN = _validationService.ValidarEConverterDecimal(alturaBarras, "Altura das barras")
+                    AlturaEAN = (double?)_validationService.ValidarEConverterDecimal(alturaBarras, "Altura das barras")
                 };
 
                 return modelo;

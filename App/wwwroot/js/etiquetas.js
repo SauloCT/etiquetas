@@ -107,7 +107,14 @@ function AdicionaItemCorrigido() {
     
     // Validação otimizada
     if (!produto || !produtoId) {
-        window.alert("O campo produto ou código do produto deve estar preenchido.");
+        showWarningMessage("O campo produto ou código do produto deve estar preenchido.");
+        resetAddButton();
+        return;
+    }
+    
+    // Validação adicional
+    if (produto.length < 2) {
+        showWarningMessage("Nome do produto deve ter pelo menos 2 caracteres.");
         resetAddButton();
         return;
     }
@@ -140,14 +147,23 @@ function AdicionaItemCorrigido() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
         }
         return response.json();
     })
     .then(data => {
         // Verificar se houve erro
         if (data.error) {
-            alert("Erro: " + data.error);
+            console.error('Erro do servidor:', data.error);
+            showErrorMessage("Erro: " + data.error);
+            resetAddButton();
+            return;
+        }
+        
+        // Validar dados retornados
+        if (!data.Id && !data.id) {
+            console.error('Dados inválidos retornados:', data);
+            showErrorMessage("Dados do produto inválidos. Tente novamente.");
             resetAddButton();
             return;
         }
@@ -155,12 +171,90 @@ function AdicionaItemCorrigido() {
         // Criar linha da tabela de forma otimizada
         createProductRow(data);
         resetAddButton();
+        showSuccessMessage("Produto adicionado com sucesso!");
     })
     .catch(error => {
-        console.error('Erro na requisição:', error);
-        alert("Erro ao adicionar o produto. Por favor, tente novamente.");
+        console.error('Erro na requisição AJAX:', error);
+        
+        // Diferentes tipos de erro
+        if (error.name === 'TypeError') {
+            showErrorMessage("Erro de conexão. Verifique sua internet e tente novamente.");
+        } else if (error.message.includes('HTTP error')) {
+            showErrorMessage("Erro do servidor. Tente novamente em alguns instantes.");
+        } else {
+            showErrorMessage("Erro inesperado. Por favor, tente novamente.");
+        }
+        
         resetAddButton();
     });
+}
+
+// Funções para exibir mensagens de erro e sucesso
+function showErrorMessage(message) {
+    try {
+        console.error('Erro:', message);
+        
+        // Tentar usar toast se disponível, senão usar alert
+        if (typeof toastr !== 'undefined') {
+            toastr.error(message);
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: message,
+                timer: 5000
+            });
+        } else {
+            alert(message);
+        }
+    } catch (error) {
+        console.error('Erro ao exibir mensagem:', error);
+        alert(message); // Fallback
+    }
+}
+
+function showSuccessMessage(message) {
+    try {
+        console.log('Sucesso:', message);
+        
+        // Tentar usar toast se disponível
+        if (typeof toastr !== 'undefined') {
+            toastr.success(message);
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+        // Para sucesso, não usar alert por ser menos intrusivo
+    } catch (error) {
+        console.error('Erro ao exibir mensagem de sucesso:', error);
+    }
+}
+
+function showWarningMessage(message) {
+    try {
+        console.warn('Aviso:', message);
+        
+        if (typeof toastr !== 'undefined') {
+            toastr.warning(message);
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Aviso',
+                text: message,
+                timer: 4000
+            });
+        } else {
+            alert(message);
+        }
+    } catch (error) {
+        console.error('Erro ao exibir mensagem de aviso:', error);
+        alert(message); // Fallback
+    }
 }
 
 // Função otimizada para criar linha do produto

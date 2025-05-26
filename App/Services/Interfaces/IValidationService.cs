@@ -1,4 +1,6 @@
+using App.Models;
 using App.VendaERP.Core.Models;
+using static App.Services.Interfaces.IEtiquetasService;
 
 namespace App.Services.Interfaces
 {
@@ -27,7 +29,7 @@ namespace App.Services.Interfaces
         /// <param name="id">ID a ser validado</param>
         /// <param name="fieldName">Nome do campo para mensagens de erro</param>
         /// <returns>Resultado da validação</returns>
-        ValidationResult ValidarId(string id, string fieldName = "ID");
+        ValidationResult ValidarId(string id, string fieldName);
 
         /// <summary>
         /// Valida parâmetros de paginação
@@ -57,7 +59,7 @@ namespace App.Services.Interfaces
         /// <param name="value">Valor a ser convertido</param>
         /// <param name="fieldName">Nome do campo</param>
         /// <returns>Valor convertido ou null se inválido</returns>
-        double? ValidarEConverterDecimal(string? value, string fieldName);
+        decimal? ValidarEConverterDecimal(string? value, string fieldName);
     }
 
     /// <summary>
@@ -66,8 +68,8 @@ namespace App.Services.Interfaces
     public class ValidationResult
     {
         public bool IsValid { get; set; }
-        public List<string> Errors { get; set; } = new();
-        public string ErrorMessage => string.Join("; ", Errors);
+        public string ErrorMessage { get; set; } = string.Empty;
+        public List<string> Errors { get; set; } = new List<string>();
 
         public static ValidationResult Success() => new() { IsValid = true };
         

@@ -1,6 +1,7 @@
 using App.Controllers;
 using App.VendaERP.Core.Models;
 using System.Collections.Generic;
+using static App.Services.Interfaces.IEtiquetasService;
 
 namespace App.Models
 {

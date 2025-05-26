@@ -75,8 +75,24 @@ namespace VendaERP.Core
             
             try
             {
-                _logger?.LogInformation("Inicializando conexão com MongoDB");
+                _logger?.LogInformation("Inicializando conexão com MongoDB. Host: {Host}, Database: {Database}", 
+                    _dbSettings.DbHost, _dbSettings.DBName);
                 
+                InitializeConnection();
+                
+                _logger?.LogInformation("Conexão com MongoDB estabelecida com sucesso");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Erro crítico ao inicializar conexão com MongoDB");
+                throw;
+            }
+        }
+
+        private void InitializeConnection()
+        {
+            try
+            {
                 ConventionPack conventionPack = new ConventionPack();
                 conventionPack.Add(new IgnoreExtraElementsConvention(ignoreExtraElements: true));
                 ConventionRegistry.Register("SIGE Conventions", conventionPack, (Type t) => true);
@@ -88,16 +104,12 @@ namespace VendaERP.Core
                 MongoDatabase = dataBase;
                 CreateHash();
                 
-                // Testar conexão
                 if (!TestConnection())
                 {
                     throw new InvalidOperationException("Não foi possível estabelecer conexão com o banco de dados");
                 }
                 
-                // Inicializar repositórios
                 InitializeRepositories();
-                
-                _logger?.LogInformation("Conexão com MongoDB estabelecida com sucesso");
             }
             catch (Exception ex)
             {
@@ -163,17 +175,25 @@ namespace VendaERP.Core
         {
             try
             {
-                _logger?.LogDebug("Testando conexão com o banco de dados");
+                _logger?.LogDebug("Testando conexão com MongoDB");
                 
-                // Tentar listar as coleções para verificar se a conexão está funcionando
-                var collections = MongoDatabase.ListCollections().ToList();
+                var result = MongoDatabase.RunCommand<MongoDB.Bson.BsonDocument>(new MongoDB.Bson.BsonDocument("ping", 1));
+                var isConnected = result.Contains("ok") && result["ok"].ToDouble() == 1.0;
                 
-                _logger?.LogDebug("Conexão testada com sucesso. {CollectionCount} coleções encontradas", collections.Count);
-                return true;
+                if (isConnected)
+                {
+                    _logger?.LogDebug("Teste de conexão com MongoDB bem-sucedido");
+                }
+                else
+                {
+                    _logger?.LogWarning("Teste de conexão com MongoDB falhou");
+                }
+                
+                return isConnected;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Falha no teste de conexão com o banco de dados");
+                _logger?.LogError(ex, "Erro ao testar conexão com MongoDB");
                 return false;
             }
         }
