@@ -1,4 +1,5 @@
 ﻿using App.Models;
+using App.Services.Interfaces;
 using App.VendaERP.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -13,408 +14,565 @@ using VendaERP.Core.Models;
 
 namespace App.Controllers
 {
+    /// <summary>
+    /// Controller para gerenciamento de etiquetas
+    /// Refatorado para seguir princípios SOLID e boas práticas de arquitetura
+    /// </summary>
     public class EtiquetasController : Controller
     {
-        private readonly DBAccess _db;
-        private Autocompletar autocompletar;
-        public EtiquetasController(DBAccess db)
+        private readonly IEtiquetasService _etiquetasService;
+        private readonly IValidationService _validationService;
+        private readonly ILogger<EtiquetasController> _logger;
+        private readonly Autocompletar _autocompletar;
+
+        public EtiquetasController(
+            IEtiquetasService etiquetasService,
+            IValidationService validationService,
+            ILogger<EtiquetasController> logger,
+            DBAccess dbAccess)
         {
-            _db = db;
-            this.autocompletar = new Autocompletar(db);
+            _etiquetasService = etiquetasService;
+            _validationService = validationService;
+            _logger = logger;
+            _autocompletar = new Autocompletar(dbAccess);
         }
+
+        /// <summary>
+        /// Página principal de etiquetas
+        /// </summary>
         public IActionResult Index()
         {
+            try
+            {
+                _logger.LogDebug("Acessando página principal de etiquetas");
+
             if (TempData.ContainsKey("message"))
                 ViewBag.message = TempData["message"];
-            return View(this.autocompletar);
-        }
-        public IActionResult NewModel()
-        {
-            return View();
-        }
-        public IActionResult SaveNewModel(string nome, string papel, string larguraPapel, string alturaPapel, string? larguraEtiqueta, string? alturaEtiqueta, string? espacamentoHorizontal, string? espacamentoVertical, string? margemEsquerda, string? margemSuperior, string? zoomImpressao, int? tamanhoFonte, int? tamanhoPreco, string? alturaBarras)
-        {
-            DtoEtiquetasPadroes padrao = new DtoEtiquetasPadroes()
-            {
-                Nome = nome,
-                Papel = (TipoPapel)Enum.Parse(typeof(TipoPapel), papel),
-                LarguraPapel = Double.Parse(larguraPapel.Replace(".", ",")),
-                AlturaPapel = Double.Parse(alturaPapel.Replace(".", ",")),
-                Largura = larguraEtiqueta != null ? Double.Parse(larguraEtiqueta.Replace(".", ",")) : null,
-                Altura = alturaEtiqueta != null ? Double.Parse(alturaEtiqueta.Replace(".", ",")) : null,
-                EspacamentoHorizontal = espacamentoHorizontal != null ? Double.Parse(espacamentoHorizontal.Replace(".", ",")) : null,
-                EspacamentoVertical = espacamentoVertical != null ? Double.Parse(espacamentoVertical.Replace(".", ",")) : null,
-                MargemEsquerda = margemEsquerda != null ? Double.Parse(margemEsquerda.Replace(".", ",")) : null,
-                MargemSuperior = margemSuperior != null ? Double.Parse(margemSuperior.Replace(".", ",")) : null,
-                ZoomImpressao = zoomImpressao != null ? Double.Parse(zoomImpressao.Replace(".", ",")) : null,
-                TamanhoFonte = tamanhoFonte,
-                TamanhoPreco = tamanhoPreco,
-                AlturaEAN = alturaBarras != null ? Double.Parse(alturaBarras.Replace(".", ",")) : null
-            };
-            _db._repositoryEtiquetasPadroes.Collection.InsertOne(padrao);
-            return Redirect("/Etiquetas/ListModels");
-        }
-        public IActionResult ListModels(int pageNumber)
-        {
-            var listModels = _db._repositoryEtiquetasPadroes.Collection.Find(x => true).Sort("{_id: -1}").ToList();
-            var pager = new Pager(listModels.Count(), pageNumber, 15);
-            var model = listModels.Skip((pager.CurrentPage - 1) * pager.PageSize).Take(pager.PageSize).ToList();
-            this.ViewBag.pager = pager;
-            return View(model);
-        }
-        public HttpResponseMessage RemoveModel(string id)
-        {
-            if (!string.IsNullOrEmpty(id))
-            {
-                _db._repositoryEtiquetasPadroes.Collection.DeleteOne(x => x.Id == id);
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            return new HttpResponseMessage(HttpStatusCode.BadRequest);
-        }
-        [Route("Etiquetas/EditModel/{id}")]
-        public IActionResult EditModel(string id)
-        {
-            if (!string.IsNullOrEmpty(id))
-            {
-                this.ViewBag.modelo = _db._repositoryEtiquetasPadroes.Collection.Find(x => x.Id == id).FirstOrDefault();
-            }
-            return View();
-        }
-        public IActionResult UpdateModel(string id, string nome, string papel, string larguraPapel, string alturaPapel, string? larguraEtiqueta, string? alturaEtiqueta, string? espacamentoHorizontal, string? espacamentoVertical, string? margemEsquerda, string? margemSuperior, string? zoomImpressao, int? tamanhoFonte, int? tamanhoPreco, string? alturaBarras)
-        {
-            if (!string.IsNullOrEmpty(id))
-            {
-                DtoEtiquetasPadroes modelo = new DtoEtiquetasPadroes()
-                {
-                    Id = id,
-                    Nome = nome,
-                    Papel = (TipoPapel)Enum.Parse(typeof(TipoPapel), papel),
-                    LarguraPapel = Double.Parse(larguraPapel.Replace(".", ",")),
-                    AlturaPapel = Double.Parse(alturaPapel.Replace(".", ",")),
-                    Largura = larguraEtiqueta != null ? Double.Parse(larguraEtiqueta.Replace(".", ",")) : null,
-                    Altura = alturaEtiqueta != null ? Double.Parse(alturaEtiqueta.Replace(".", ",")) : null,
-                    EspacamentoHorizontal = espacamentoHorizontal != null ? Double.Parse(espacamentoHorizontal.Replace(".", ",")) : null,
-                    EspacamentoVertical = espacamentoVertical != null ? Double.Parse(espacamentoVertical.Replace(".", ",")) : null,
-                    MargemEsquerda = margemEsquerda != null ? Double.Parse(margemEsquerda.Replace(".", ",")) : null,
-                    MargemSuperior = margemSuperior != null ? Double.Parse(margemSuperior.Replace(".", ",")) : null,
-                    ZoomImpressao = zoomImpressao != null ? Double.Parse(zoomImpressao.Replace(".", ",")) : null,
-                    TamanhoFonte = tamanhoFonte,
-                    TamanhoPreco = tamanhoPreco,
-                    AlturaEAN = alturaBarras != null ? Double.Parse(alturaBarras.Replace(".", ",")) : null
-                };
-                _db._repositoryEtiquetasPadroes.Collection.ReplaceOne(x => x.Id == id, modelo);
-            }
-            return Redirect("/Etiquetas/EditModel/" + id);
-        }
-        [HttpPost]
-        public IActionResult Baixar(string empresa, string etiqueta, string clienteFornecedor, string tabelaDePreco, string deposito, bool dadoLadoCodigoBarras, bool imprimirCodigoBarras, bool imprimirNumeroCodigoBarras, bool imprimirCodigo, bool imprimirNome, bool imprimirPreco, bool precoComoCodigo, bool imprimirMarca, bool imprimirBorda, bool imprimirLote, bool imprimirNumeroSerie, bool gerarCodigosBarras, string[] itens)
-        {
-            try
-            {
-                if (itens == null || itens.Length == 0)
-                {
-                    TempData["message"] = "Ao menos um item deve ser inserido";
-                    return Redirect("/Etiquetas/Index");
-                }
-                string? nomeEmpresa = null;
-                try
-                {
-                    if(string.IsNullOrEmpty(empresa)){
-                        TempData["message"] = "Erro: ID da empresa vazia ou nula.";
-                        return Redirect("/Etiquetas/Index");
-                    }
-                    nomeEmpresa = _db._repositoryEmpresa.Collection.Find(x => x.Id == empresa)?.FirstOrDefault()?.NomeFantasia;
-                    if (string.IsNullOrEmpty(nomeEmpresa))
-                    {
-                        TempData["message"] = "Erro: Empresa não encontrada";
-                        return Redirect("/Etiquetas/Index");
-                    }
-                }
-                catch
-                {
-                    TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo nome da empresa";
-                    return Redirect("/Etiquetas/Index");
-                }
 
-                DtoEtiquetasPadroes? modelEtiqueta = null;
-                try
-                {
-                    if (string.IsNullOrEmpty(etiqueta))
-                    {
-                        TempData["message"] = "Erro: ID do modelo de etiqueta vazia ou nula.";
-                        return Redirect("/Etiquetas/Index");
-                    }
-                    modelEtiqueta = _db._repositoryEtiquetasPadroes.Collection.Find(x => x.Id == etiqueta).FirstOrDefault();
-                    if (modelEtiqueta == null)
-                    {
-                        TempData["message"] = "Erro: Empresa não encontrada";
-                        return Redirect("/Etiquetas/Index");
-                    }
-                }
-                catch
-                {
-                    TempData["message"] = "Erro: Falha ao realizar a busca no banco de dados pelo modelo de etiqueta";
-                    return Redirect("/Etiquetas/Index");
-                }
-                
-                List<ProdutoEscolhido> listaItens = new List<ProdutoEscolhido>();
-                foreach(var item in itens){
-                    //prod[0] == id / prod[1] == quantidade / prod[2] == lote / prod[3] == numeroSerie
-                    string[] prod = item.Split(',');
-                    
-                    // Incluindo o campo Tamanho na projeção para a geração de códigos
-                    var produtoDocument = _db._repositoryProduto.Collection.Find(x => x.Id == prod[0]).Project(new BsonDocument { 
-                        { "_id", true }, 
-                        { "CodigoNFe", true }, 
-                        { "Nome", true }, 
-                        { "PrecoVenda", true }, 
-                        { "Marca", true }, 
-                        { "EAN_NFe", true },
-                        { "Tamanho", true }  // Adicionado para geração de códigos
-                    }).FirstOrDefault();
-                    
-                    if (produtoDocument != null)
-                    {
-                        var produdo = BsonSerializer.Deserialize<ProdutoEscolhido>(produtoDocument.ToJson());
-                        produdo.Quantidade = int.Parse(prod[1]);
-                        if (!string.IsNullOrEmpty(prod[2]))
-                            produdo.Lote = prod[2];
-                        if (!string.IsNullOrEmpty(prod[3]))
-                            produdo.NumeroSerie = prod[3];
-
-                        // Se a opção de gerar códigos de barras estiver marcada e o produto não tiver código
-                        if (gerarCodigosBarras && string.IsNullOrEmpty(produdo.CodigoBarras))
-                        {
-                            var novoCodigoBarras = GerarCodigoBarras(empresa, produdo.Id);
-                            if (!string.IsNullOrEmpty(novoCodigoBarras))
-                            {
-                                produdo.CodigoBarras = novoCodigoBarras;
-                                
-                                // Atualizar o produto no banco de dados com o novo código
-                                var filter = Builders<DtoProduto>.Filter.Eq("_id", ObjectId.Parse(produdo.Id));
-                                var update = Builders<DtoProduto>.Update.Set("EAN_NFe", novoCodigoBarras);
-                                _db._repositoryProduto.Collection.UpdateOne(filter, update);
-                            }
-                        }
-
-                        listaItens.Add(produdo);
-                    }
-                }
-
-                OpcoesSelecionadas opcoesSelecionadas = new OpcoesSelecionadas()
-                {
-                    DadoLadoCodigoBarras = dadoLadoCodigoBarras,
-                    ImprimirBorda = imprimirBorda,
-                    ImprimirCodigo = imprimirCodigo,
-                    ImprimirCodigoBarras = imprimirCodigoBarras,
-                    ImprimirLote = imprimirLote,
-                    ImprimirMarca = imprimirMarca,
-                    ImprimirNome = imprimirNome,
-                    ImprimirNumeroCodigoBarras = imprimirNumeroCodigoBarras,
-                    ImprimirNumeroSerie = imprimirNumeroSerie,
-                    ImprimirPreco = imprimirPreco,
-                    PrecoComoCodigo = precoComoCodigo,
-                    GerarCodigosBarras = gerarCodigosBarras
-                };
-
-                // Se for uma requisição AJAX, retorna apenas a view parcial
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return PartialView("_EtiquetasContent", new EtiquetasContentViewModel { 
-                        NomeEmpresa = nomeEmpresa,
-                        ModelEtiqueta = modelEtiqueta,
-                        OpcoesSelecionadas = opcoesSelecionadas,
-                        ListaItens = listaItens
-                    });
-                }
-
-                // Se não for AJAX, retorna a view completa como antes
-                ViewBag.nomeEmpresa = nomeEmpresa;
-                ViewBag.modelEtiqueta = modelEtiqueta;
-                ViewBag.opcoesSelecionadas = opcoesSelecionadas;
-                ViewBag.listaItens = listaItens;
-                return View();
+                return View(_autocompletar);
             }
             catch (Exception ex)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return BadRequest(ex.Message);
-                }
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction("Index");
-            }
-        }
-
-        [HttpPost]
-        public JsonResult VerificarProdutosSemCodigo(string[] itens)
-        {
-            try
-            {
-                var produtosSemCodigo = new List<object>();
-                
-                foreach(var item in itens)
-                {
-                    string[] prod = item.Split(',');
-                    var produto = _db._repositoryProduto.Collection.Find(x => x.Id == prod[0])
-                        .Project(new BsonDocument { 
-                            { "_id", true }, 
-                            { "Nome", true }, 
-                            { "EAN_NFe", true } 
-                        }).FirstOrDefault();
-                    
-                    if (produto != null)
-                    {
-                        // Usar uma abordagem mais direta para acessar os valores
-                        string id = produto["_id"].ToString();
-                        string nome = "Nome não encontrado";
-                        string eanNfe = "";
-                        
-                        // Verificar se o campo Nome existe
-                        if (produto.Contains("Nome"))
-                        {
-                            var nomeValue = produto["Nome"];
-                            if (nomeValue != null && !nomeValue.IsBsonNull)
-                            {
-                                nome = nomeValue.ToString();
-                            }
-                        }
-                        
-                        // Verificar se o campo EAN_NFe existe
-                        if (produto.Contains("EAN_NFe"))
-                        {
-                            var eanValue = produto["EAN_NFe"];
-                            if (eanValue != null && !eanValue.IsBsonNull)
-                            {
-                                eanNfe = eanValue.ToString();
-                            }
-                        }
-                        
-                        if (string.IsNullOrEmpty(eanNfe))
-                        {
-                            produtosSemCodigo.Add(new { 
-                                Id = id,
-                                Nome = nome
-                            });
-                        }
-                    }
-                }
-                
-                return Json(new { 
-                    success = true, 
-                    produtos = produtosSemCodigo,
-                    total = produtosSemCodigo.Count 
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
+                _logger.LogError(ex, "Erro ao carregar página principal de etiquetas");
+                TempData["message"] = "Erro interno do servidor. Tente novamente.";
+                return View(_autocompletar);
             }
         }
 
         /// <summary>
-        /// Gera um código de barras seguindo as regras específicas do sistema
-        /// Baseado na lógica do n8n que usa CodigoNFe, Tamanho e PrecoVenda
+        /// Página para criar novo modelo
         /// </summary>
-        /// <param name="empresaId">ID da empresa</param>
-        /// <param name="produtoId">ID do produto</param>
-        /// <returns>Código de barras gerado</returns>
-        private string? GerarCodigoBarras(string empresaId, string produtoId)
+        public IActionResult NewModel()
         {
             try
             {
-                // Buscar o produto completo no banco para obter CodigoNFe, PrecoVenda e Tamanho
-                var produto = _db._repositoryProduto.Collection.Find(x => x.Id == produtoId)
-                    .Project(new BsonDocument { 
-                        { "CodigoNFe", true }, 
-                        { "PrecoVenda", true }, 
-                        { "Tamanho", true } 
-                    }).FirstOrDefault();
-                
-                if (produto == null)
-                {
-                    return null;
-                }
-
-                var produtoObj = BsonSerializer.Deserialize<dynamic>(produto.ToJson());
-
-                // Part1: CodigoNFe sem hífens
-                string part1 = produtoObj.CodigoNFe?.ToString()?.Replace("-", "") ?? "";
-
-                // Part2: Usar o campo Tamanho do produto ou "0" se não existir
-                string part2 = "0";
-                if (produtoObj.Tamanho != null)
-                {
-                    string tamanhoStr = produtoObj.Tamanho.ToString();
-                    if (!string.IsNullOrEmpty(tamanhoStr) && int.TryParse(tamanhoStr, out int tamanhoValue))
-                    {
-                        part2 = tamanhoValue.ToString();
-                    }
-                }
-
-                // Part3: PrecoVenda formatado (sem ponto decimal e sem vírgula)
-                double precoVenda = produtoObj.PrecoVenda != null ? (double)produtoObj.PrecoVenda : 0.0;
-                string part3 = precoVenda.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture).Replace(".", "");
-
-                // Zeros fixos conforme regra
-                string prefixZero = "0";      // Sempre começar com 0
-                string middleZero1 = "0";     // Zero entre CodigoNFe e TAMANHO
-                string middleZero2 = "0";     // Zero entre TAMANHO e PrecoVenda
-
-                // Concatena os valores sem preenchimento extra
-                string baseCode = prefixZero + part1 + middleZero1 + part2 + middleZero2 + part3;
-
-                // Calcula quantos zeros precisam ser adicionados entre TAMANHO e PrecoVenda
-                int totalLength = baseCode.Length;
-                int zerosNeeded = 14 - totalLength;
-
-                // Adiciona os zeros extras entre TAMANHO e PrecoVenda, se necessário
-                string paddingZeros = zerosNeeded > 0 ? new string('0', zerosNeeded) : "";
-
-                // Código final
-                string finalCode = prefixZero + part1 + middleZero1 + part2 + paddingZeros + middleZero2 + part3;
-
-                return finalCode.Trim();
+                _logger.LogDebug("Acessando página de criação de modelo");
+            return View();
             }
             catch (Exception ex)
             {
-                // Log do erro se necessário
-                Console.WriteLine($"Erro ao gerar código de barras: {ex.Message}");
-                return null;
+                _logger.LogError(ex, "Erro ao carregar página de criação de modelo");
+                TempData["message"] = "Erro interno do servidor. Tente novamente.";
+                return RedirectToAction("Index");
             }
         }
 
+        /// <summary>
+        /// Salva um novo modelo de etiqueta
+        /// </summary>
         [HttpPost]
-        public string GetProduto(string deposito, string produto)
+        public async Task<IActionResult> SaveNewModel(
+            string nome, string papel, string larguraPapel, string alturaPapel, 
+            string? larguraEtiqueta, string? alturaEtiqueta, string? espacamentoHorizontal, 
+            string? espacamentoVertical, string? margemEsquerda, string? margemSuperior, 
+            string? zoomImpressao, int? tamanhoFonte, int? tamanhoPreco, string? alturaBarras)
         {
-            var produtoEscolhido = BsonSerializer.Deserialize<ProdutoEscolhido>(_db._repositoryProduto.Collection.Find(x => x.Id == produto).Project(new BsonDocument { 
-                { "_id", true }, 
-                { "CodigoNFe", true }, 
-                { "Nome", true }, 
-                { "PrecoVenda", true }, 
-                { "Marca", true }, 
-                { "NumeroSerie", true },
-                { "EAN_NFe", true } 
-            }).FirstOrDefault().ToJson());
-
-            if (produtoEscolhido != null)
+            try
             {
-                return "{" +
-                    "\"Id\":\"" + produtoEscolhido.Id + "\"," +
-                    "\"Codigo\":\"" + (produtoEscolhido.Codigo ?? "") + "\"," +
-                    "\"CodigoBarras\":\"" + (produtoEscolhido.CodigoBarras ?? "") + "\"," +
-                    //replace utilizado para tratar inserções no banco de dados de "
-                    "\"Nome\":\"" + produtoEscolhido.Nome.Replace("\"","\\\"") + "\"," +
-                    "\"PrecoVenda\":\"" + produtoEscolhido.Preco + "\"," +
-                    "\"Marca\":\"" + (produtoEscolhido.Marca ?? "") + "\"," +
-                    "\"NumeroSerie\":\"" + (produtoEscolhido.NumeroSerie ?? "") + "\"}";
+                _logger.LogInformation("Iniciando criação de novo modelo: {Nome}", nome);
+
+                // Validações básicas antes de criar o modelo
+                if (string.IsNullOrWhiteSpace(nome))
+                {
+                    TempData["message"] = "Nome do modelo é obrigatório.";
+                    return RedirectToAction("NewModel");
+                }
+
+                if (string.IsNullOrWhiteSpace(papel))
+                {
+                    TempData["message"] = "Tipo de papel é obrigatório.";
+                    return RedirectToAction("NewModel");
+                }
+
+                if (string.IsNullOrWhiteSpace(larguraPapel) || string.IsNullOrWhiteSpace(alturaPapel))
+                {
+                    TempData["message"] = "Dimensões do papel são obrigatórias.";
+                    return RedirectToAction("NewModel");
+                }
+
+                // Criar modelo com validação
+                var modelo = CriarModeloFromParameters(
+                    nome, papel, larguraPapel, alturaPapel, larguraEtiqueta, alturaEtiqueta,
+                    espacamentoHorizontal, espacamentoVertical, margemEsquerda, margemSuperior,
+                    zoomImpressao, tamanhoFonte, tamanhoPreco, alturaBarras);
+
+                var modeloCriado = await _etiquetasService.CriarModeloAsync(modelo);
+
+                TempData["message"] = "Modelo criado com sucesso!";
+                _logger.LogInformation("Modelo criado com sucesso. ID: {Id}", modeloCriado.Id);
+
+                return RedirectToAction("ListModels");
             }
-            return "Erro";
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dados inválidos ao criar modelo: {Nome}", nome);
+                TempData["message"] = $"Erro de validação: {ex.Message}";
+                return RedirectToAction("NewModel");
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Formato inválido ao criar modelo: {Nome}", nome);
+                TempData["message"] = "Formato de dados inválido. Verifique os valores numéricos.";
+                return RedirectToAction("NewModel");
+            }
+            catch (MongoDB.Driver.MongoException ex)
+            {
+                _logger.LogError(ex, "Erro de banco de dados ao criar modelo: {Nome}", nome);
+                TempData["message"] = "Erro de conexão com o banco de dados. Tente novamente.";
+                return RedirectToAction("NewModel");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro inesperado ao criar modelo: {Nome}", nome);
+                TempData["message"] = "Erro interno do servidor. Tente novamente.";
+                return RedirectToAction("NewModel");
+            }
         }
 
+        /// <summary>
+        /// Lista modelos com paginação
+        /// </summary>
+        public async Task<IActionResult> ListModels(int pageNumber = 1)
+        {
+            try
+            {
+                _logger.LogDebug("Listando modelos. Página: {PageNumber}", pageNumber);
+
+                const int pageSize = 15;
+                var (modelos, totalCount) = await _etiquetasService.ListarModelosAsync(pageNumber, pageSize);
+
+                var pager = new Pager(totalCount, pageNumber, pageSize);
+                ViewBag.pager = pager;
+
+                return View(modelos);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Parâmetros inválidos ao listar modelos");
+                TempData["message"] = $"Erro de validação: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao listar modelos");
+                TempData["message"] = "Erro interno do servidor. Tente novamente.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// Remove um modelo
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> RemoveModel(string id)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando remoção de modelo. ID: {Id}", id);
+
+                // Validação básica do ID
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    _logger.LogWarning("ID vazio fornecido para remoção de modelo");
+                    return BadRequest(new { success = false, message = "ID do modelo é obrigatório" });
+                }
+
+                // Verificar se o modelo existe antes de tentar remover
+                var modeloExistente = await _etiquetasService.ObterModeloPorIdAsync(id);
+                if (modeloExistente == null)
+                {
+                    _logger.LogWarning("Tentativa de remover modelo inexistente. ID: {Id}", id);
+                    return NotFound(new { success = false, message = "Modelo não encontrado" });
+                }
+
+                var sucesso = await _etiquetasService.RemoverModeloAsync(id);
+
+                if (sucesso)
+                {
+                    _logger.LogInformation("Modelo removido com sucesso. ID: {Id}, Nome: {Nome}", id, modeloExistente.Nome);
+                    return Ok(new { success = true, message = $"Modelo '{modeloExistente.Nome}' removido com sucesso" });
+                }
+                else
+                {
+                    _logger.LogWarning("Falha ao remover modelo. ID: {Id}", id);
+                    return StatusCode(500, new { success = false, message = "Falha ao remover o modelo" });
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "ID inválido ao remover modelo: {Id}", id);
+                return BadRequest(new { success = false, message = $"ID inválido: {ex.Message}" });
+            }
+            catch (MongoDB.Driver.MongoException ex)
+            {
+                _logger.LogError(ex, "Erro de banco de dados ao remover modelo. ID: {Id}", id);
+                return StatusCode(500, new { success = false, message = "Erro de conexão com o banco de dados" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro inesperado ao remover modelo. ID: {Id}", id);
+                return StatusCode(500, new { success = false, message = "Erro interno do servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Página de edição de modelo
+        /// </summary>
+        [Route("Etiquetas/EditModel/{id}")]
+        public async Task<IActionResult> EditModel(string id)
+        {
+            try
+            {
+                _logger.LogDebug("Acessando página de edição. ID: {Id}", id);
+
+                var modelo = await _etiquetasService.ObterModeloPorIdAsync(id);
+                if (modelo == null)
+                {
+                    TempData["message"] = "Modelo não encontrado.";
+                    return RedirectToAction("ListModels");
+                }
+
+                ViewBag.modelo = modelo;
+            return View();
+        }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "ID inválido ao editar modelo: {Id}", id);
+                TempData["message"] = $"Erro de validação: {ex.Message}";
+                return RedirectToAction("ListModels");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao carregar página de edição. ID: {Id}", id);
+                TempData["message"] = "Erro interno do servidor. Tente novamente.";
+                return RedirectToAction("ListModels");
+            }
+        }
+
+        /// <summary>
+        /// Atualiza um modelo existente
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateModel(
+            string id, string nome, string papel, string larguraPapel, string alturaPapel,
+            string? larguraEtiqueta, string? alturaEtiqueta, string? espacamentoHorizontal,
+            string? espacamentoVertical, string? margemEsquerda, string? margemSuperior,
+            string? zoomImpressao, int? tamanhoFonte, int? tamanhoPreco, string? alturaBarras)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando atualização de modelo. ID: {Id}", id);
+
+                // Criar modelo com validação
+                var modelo = CriarModeloFromParameters(
+                    nome, papel, larguraPapel, alturaPapel, larguraEtiqueta, alturaEtiqueta,
+                    espacamentoHorizontal, espacamentoVertical, margemEsquerda, margemSuperior,
+                    zoomImpressao, tamanhoFonte, tamanhoPreco, alturaBarras);
+
+                var modeloAtualizado = await _etiquetasService.AtualizarModeloAsync(id, modelo);
+
+                if (modeloAtualizado == null)
+                {
+                    TempData["message"] = "Modelo não encontrado.";
+                    return RedirectToAction("ListModels");
+                }
+
+                TempData["message"] = "Modelo atualizado com sucesso!";
+                _logger.LogInformation("Modelo atualizado com sucesso. ID: {Id}", id);
+
+                return RedirectToAction("EditModel", new { id });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dados inválidos ao atualizar modelo. ID: {Id}", id);
+                TempData["message"] = $"Erro de validação: {ex.Message}";
+                return RedirectToAction("EditModel", new { id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar modelo. ID: {Id}", id);
+                TempData["message"] = "Erro interno do servidor. Tente novamente.";
+                return RedirectToAction("EditModel", new { id });
+            }
+        }
+
+        /// <summary>
+        /// Processa a geração de etiquetas
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Baixar(
+            string empresa, string etiqueta, string clienteFornecedor, string tabelaDePreco, 
+            string deposito, bool dadoLadoCodigoBarras, bool imprimirCodigoBarras, 
+            bool imprimirNumeroCodigoBarras, bool imprimirCodigo, bool imprimirNome, 
+            bool imprimirPreco, bool precoComoCodigo, bool imprimirMarca, bool imprimirBorda, 
+            bool imprimirLote, bool imprimirNumeroSerie, bool gerarCodigosBarras, string[] itens)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando processamento de etiquetas para empresa: {Empresa}", empresa);
+
+                var request = new EtiquetasRequest
+                {
+                    Empresa = empresa,
+                    Etiqueta = etiqueta,
+                    ClienteFornecedor = clienteFornecedor,
+                    TabelaDePreco = tabelaDePreco,
+                    Deposito = deposito,
+                    DadoLadoCodigoBarras = dadoLadoCodigoBarras,
+                    ImprimirCodigoBarras = imprimirCodigoBarras,
+                    ImprimirNumeroCodigoBarras = imprimirNumeroCodigoBarras,
+                    ImprimirCodigo = imprimirCodigo,
+                    ImprimirNome = imprimirNome,
+                    ImprimirPreco = imprimirPreco,
+                    PrecoComoCodigo = precoComoCodigo,
+                    ImprimirMarca = imprimirMarca,
+                    ImprimirBorda = imprimirBorda,
+                    ImprimirLote = imprimirLote,
+                    ImprimirNumeroSerie = imprimirNumeroSerie,
+                    GerarCodigosBarras = gerarCodigosBarras,
+                    Itens = itens ?? Array.Empty<string>()
+                };
+
+                var result = await _etiquetasService.ProcessarEtiquetasAsync(request);
+
+                // Se for uma requisição AJAX, retorna apenas a view parcial
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return PartialView("_EtiquetasContent", new EtiquetasContentViewModel
+                    {
+                        NomeEmpresa = result.NomeEmpresa,
+                        ModelEtiqueta = result.ModelEtiqueta,
+                        OpcoesSelecionadas = result.OpcoesSelecionadas,
+                        ListaItens = result.ListaItens
+                    });
+                }
+
+                // Se não for AJAX, retorna a view completa
+                ViewBag.nomeEmpresa = result.NomeEmpresa;
+                ViewBag.modelEtiqueta = result.ModelEtiqueta;
+                ViewBag.opcoesSelecionadas = result.OpcoesSelecionadas;
+                ViewBag.listaItens = result.ListaItens;
+
+                _logger.LogInformation("Processamento de etiquetas concluído com sucesso. {Count} itens", result.ListaItens.Count);
+                return View();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dados inválidos ao processar etiquetas");
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(new { success = false, message = ex.Message });
+                }
+                
+                TempData["message"] = $"Erro de validação: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Operação inválida ao processar etiquetas");
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(new { success = false, message = ex.Message });
+                }
+                
+                TempData["message"] = ex.Message;
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao processar etiquetas");
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return StatusCode(500, new { success = false, message = "Erro interno do servidor" });
+                }
+                
+                TempData["ErrorMessage"] = "Erro interno do servidor. Tente novamente.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// Verifica produtos sem código de barras
+        /// </summary>
+        [HttpPost]
+        public async Task<JsonResult> VerificarProdutosSemCodigo(string[] itens)
+        {
+            try
+            {
+                _logger.LogDebug("Verificando produtos sem código. {Count} itens", itens?.Length ?? 0);
+
+                var produtosSemCodigo = await _etiquetasService.VerificarProdutosSemCodigoAsync(itens);
+
+                return Json(new
+                {
+                    success = true,
+                    produtos = produtosSemCodigo.Select(p => new { p.Id, p.Nome }),
+                    total = produtosSemCodigo.Count
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dados inválidos ao verificar produtos sem código");
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao verificar produtos sem código");
+                return Json(new { success = false, message = "Erro interno do servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Obtém dados de um produto
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> GetProduto(string deposito, string produto)
+        {
+            try
+            {
+                _logger.LogDebug("Buscando produto. ID: {Produto}, Depósito: {Deposito}", produto, deposito);
+
+                if (string.IsNullOrWhiteSpace(produto))
+                {
+                    _logger.LogWarning("ID do produto está vazio ou nulo");
+                    return Json(new { error = "ID do produto é obrigatório" });
+                }
+
+                var produtoEscolhido = await _etiquetasService.ObterProdutoAsync(deposito, produto);
+
+                if (produtoEscolhido == null)
+                {
+                    _logger.LogWarning("Produto não encontrado. ID: {Produto}", produto);
+                    return Json(new { error = "Produto não encontrado" });
+                }
+
+                // Retornar objeto JSON estruturado
+                var resultado = new
+                {
+                    Id = produtoEscolhido.Id,
+                    Codigo = produtoEscolhido.Codigo ?? "",
+                    CodigoNFe = produtoEscolhido.Codigo ?? "",
+                    CodigoBarras = produtoEscolhido.CodigoBarras ?? "",
+                    Nome = produtoEscolhido.Nome ?? "",
+                    PrecoVenda = produtoEscolhido.Preco.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                    Marca = produtoEscolhido.Marca ?? "",
+                    NumeroSerie = produtoEscolhido.NumeroSerie ?? "",
+                    Unidade = "UN" // Valor padrão para compatibilidade
+                };
+
+                return Json(resultado);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dados inválidos ao buscar produto: {Produto}", produto);
+                return Json(new { error = $"Dados inválidos: {ex.Message}" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar produto. ID: {Produto}", produto);
+                return Json(new { error = "Erro interno do servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Página de erro
+        /// </summary>
         public IActionResult Error()
         {
+            _logger.LogDebug("Acessando página de erro");
             return View("Error");
         }
+
+        #region Métodos Privados
+
+        /// <summary>
+        /// Cria um modelo de etiqueta a partir dos parâmetros com validação
+        /// </summary>
+        private DtoEtiquetasPadroes CriarModeloFromParameters(
+            string nome, string papel, string larguraPapel, string alturaPapel,
+            string? larguraEtiqueta, string? alturaEtiqueta, string? espacamentoHorizontal,
+            string? espacamentoVertical, string? margemEsquerda, string? margemSuperior,
+            string? zoomImpressao, int? tamanhoFonte, int? tamanhoPreco, string? alturaBarras)
+        {
+            try
+            {
+                // Sanitizar e validar entradas
+                nome = _validationService.SanitizeString(nome);
+
+                if (string.IsNullOrWhiteSpace(nome))
+                {
+                    throw new ArgumentException("Nome do modelo é obrigatório");
+                }
+
+                if (!Enum.TryParse<TipoPapel>(papel, out var tipoPapel))
+                {
+                    throw new ArgumentException($"Tipo de papel inválido: {papel}");
+                }
+
+                // Validar dimensões obrigatórias
+                var larguraPapelValue = _validationService.ValidarEConverterDecimal(larguraPapel, "Largura do papel");
+                var alturaPapelValue = _validationService.ValidarEConverterDecimal(alturaPapel, "Altura do papel");
+
+                if (!larguraPapelValue.HasValue || larguraPapelValue <= 0)
+                {
+                    throw new ArgumentException("Largura do papel deve ser um valor positivo");
+                }
+
+                if (!alturaPapelValue.HasValue || alturaPapelValue <= 0)
+                {
+                    throw new ArgumentException("Altura do papel deve ser um valor positivo");
+                }
+
+                var modelo = new DtoEtiquetasPadroes
+                {
+                    Nome = nome,
+                    Papel = tipoPapel,
+                    LarguraPapel = larguraPapelValue.Value,
+                    AlturaPapel = alturaPapelValue.Value,
+                    Largura = _validationService.ValidarEConverterDecimal(larguraEtiqueta, "Largura da etiqueta"),
+                    Altura = _validationService.ValidarEConverterDecimal(alturaEtiqueta, "Altura da etiqueta"),
+                    EspacamentoHorizontal = _validationService.ValidarEConverterDecimal(espacamentoHorizontal, "Espaçamento horizontal"),
+                    EspacamentoVertical = _validationService.ValidarEConverterDecimal(espacamentoVertical, "Espaçamento vertical"),
+                    MargemEsquerda = _validationService.ValidarEConverterDecimal(margemEsquerda, "Margem esquerda"),
+                    MargemSuperior = _validationService.ValidarEConverterDecimal(margemSuperior, "Margem superior"),
+                    ZoomImpressao = _validationService.ValidarEConverterDecimal(zoomImpressao, "Zoom de impressão"),
+                    TamanhoFonte = tamanhoFonte,
+                    TamanhoPreco = tamanhoPreco,
+                    AlturaEAN = _validationService.ValidarEConverterDecimal(alturaBarras, "Altura das barras")
+                };
+
+                return modelo;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar modelo a partir dos parâmetros");
+                throw;
+            }
+        }
+
+        #endregion
     }
 }

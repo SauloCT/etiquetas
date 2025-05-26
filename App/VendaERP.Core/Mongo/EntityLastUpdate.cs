@@ -10,7 +10,7 @@ namespace VendaERP.Core
     {
  
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime LastUpdate { get; set; }

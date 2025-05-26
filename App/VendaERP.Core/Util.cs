@@ -81,7 +81,7 @@
         private static string GetCollectionName<T>() where T : IEntity
         {
             string collectionName;
-            if (typeof(T).BaseType.Equals(typeof(object)))
+            if (typeof(T).BaseType?.Equals(typeof(object)) == true)
             {
                 collectionName = GetCollectioNameFromInterface<T>();
             }
@@ -140,7 +140,7 @@
             else
             {
                 // No attribute found, get the basetype
-                while (!entitytype.BaseType.Equals(typeof(Entity)))
+                while (entitytype.BaseType != null && !entitytype.BaseType.Equals(typeof(Entity)))
                 {
                     entitytype = entitytype.BaseType;
                 }

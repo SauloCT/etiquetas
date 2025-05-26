@@ -25,7 +25,7 @@
         /// <summary>
         /// MongoCollection field.
         /// </summary>
-        private IMongoCollection<T> collection;
+        private IMongoCollection<T> collection = null!;
 
         /// <summary>
         /// Initializes a new instance of the MongoRepository class.
@@ -85,19 +85,9 @@
         /// <returns>The Entity T.</returns>
         public T GetById(string id)
         {
-
-            // CóDIGO POUCO EFEICAZ E QUE CAUSA MORTES
-
-            //#region Ajustes Code Machine
-            ////if (string.IsNullOrEmpty(id) || id.Contains(".aspx"))
-            ////    return (T)Activator.CreateInstance(typeof(T), null);
-            //#endregion
-
-            //return default(T);
-
             if (typeof(T).IsSubclassOf(typeof(Entity)))
             {
-                this.collection.Find<T>("{_id:ObjectId(\"" + id + "\")}").FirstOrDefault(); 
+                return this.collection.Find<T>("{_id:ObjectId(\"" + id + "\")}").FirstOrDefault(); 
             }
 
             return this.collection.Find<T>("{_id:\"" + id + "\"}").FirstOrDefault();
@@ -139,19 +129,15 @@
         /// <returns>The added entity including its new ObjectId.</returns>
         public T Add(T entity)
         {
-            /*this.collection.InsertOne<T>(entity);*/
-
+            this.collection.InsertOne(entity);
             return entity;
         }
 
         public List<T> AddRange(List<T> entities)
         {
-            /*foreach (var entity in entities)
-                this.collection.InsertOne<T>(entity);*/
-
+            this.collection.InsertMany(entities);
             return entities;
         }
-
 
         /// <summary>
         /// Adiciona um itemn sem validar nd e sem registrar log da ação, mais performatico mas mais perigoso
@@ -160,11 +146,9 @@
         /// <returns>The added entity including its new ObjectId.</returns>
         public T AddSemLog(T entity)
         {
-            /*this.collection.Insert<T>(entity);*/
-
+            this.collection.InsertOne(entity);
             return entity;
         }
-
 
         /// <summary>
         /// Upserts an entity.
@@ -173,17 +157,13 @@
         /// <returns>The updated entity.</returns>
         public T Update(T entity)
         {
-            //FAZ UPDATE SE EXISTE
-            if (entity.Id != null)
+            if (!string.IsNullOrEmpty(entity.Id))
             {
-                /*var oldEntity = this.collection.FindOneById(ObjectId.Parse(entity.Id));
-                if (oldEntity != null && !string.IsNullOrEmpty(entity.Id))
-                    this.collection.Save<T>(entity);*/
+                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(entity.Id));
+                this.collection.ReplaceOne(filter, entity);
             }
-
             return entity;
         }
-
 
         /// <summary>
         ///Faz update sem validar nd e sem registrar log da ação, mais performatico mas mais perigoso
@@ -191,10 +171,11 @@
         /// <returns>The updated entity.</returns>
         public T UpdateSemLog(T entity)
         {
-            //FAZ UPDATE SE EXISTE
-            /*if (entity.Id != null)
-                this.collection.Save<T>(entity);*/
-
+            if (!string.IsNullOrEmpty(entity.Id))
+            {
+                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(entity.Id));
+                this.collection.ReplaceOne(filter, entity);
+            }
             return entity;
         }
 
@@ -204,19 +185,17 @@
         /// <param name="id">The string representation of the entity's id.</param>
         public void Delete(string id, bool IgnorarPermissaoUsuario)
         {
-            /*var entity = this.collection.FindOneById(new ObjectId(id));
-
             if (typeof(T).IsSubclassOf(typeof(Entity)))
             {
-                this.collection.Remove(Query.EQ("_id", new ObjectId(id)));
+                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+                this.collection.DeleteOne(filter);
             }
             else
             {
-                this.collection.Remove(Query.EQ("_id", id));
-            }*/
+                var filter = Builders<T>.Filter.Eq("_id", id);
+                this.collection.DeleteOne(filter);
+            }
         }
-
-
 
         public void Delete(string id)
         {

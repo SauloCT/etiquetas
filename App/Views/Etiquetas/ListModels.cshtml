@@ -145,12 +145,56 @@
 
 <script>
     function removeModelo(id) {
+        if (!id) {
+            alert("ID do modelo não fornecido.");
+            return;
+        }
+
+        if (!confirm("Tem certeza que deseja remover este modelo? Esta ação não pode ser desfeita.")) {
+            return;
+        }
+
         var url = "/Etiquetas/RemoveModel";
-        $.post(url, { "id": id }, function (data) {
-            if (data.statusCode == 200) {
-                location.reload();
-            } else {
-                window.alert("ocorreu um erro inesperado");
+        
+        // Mostrar indicador de carregamento
+        var button = event.target.closest('button');
+        var originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: { "id": id },
+            success: function(data) {
+                if (data.success) {
+                    alert(data.message || "Modelo removido com sucesso!");
+                    location.reload();
+                } else {
+                    alert(data.message || "Erro ao remover o modelo.");
+                    // Restaurar botão
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                }
+            },
+            error: function(xhr, status, error) {
+                var errorMessage = "Erro inesperado ao remover o modelo.";
+                
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 404) {
+                    errorMessage = "Modelo não encontrado.";
+                } else if (xhr.status === 400) {
+                    errorMessage = "Dados inválidos fornecidos.";
+                } else if (xhr.status === 500) {
+                    errorMessage = "Erro interno do servidor. Tente novamente.";
+                }
+                
+                alert(errorMessage);
+                
+                // Restaurar botão
+                button.innerHTML = originalContent;
+                button.disabled = false;
             }
         });
     }

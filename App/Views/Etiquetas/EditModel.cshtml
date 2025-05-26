@@ -17,6 +17,16 @@
 }
 
 <style>
+    .help-icon {
+        color: #0d6efd;
+        cursor: pointer;
+        margin-left: 5px;
+    }
+
+    .help-icon:hover {
+        color: #0a58ca;
+    }
+
     .instruction-section {
         margin-bottom: 20px;
         padding: 10px;
@@ -119,114 +129,399 @@
 {
     <div class="card">
         <div class="card-body">
-            <form method="post" action="/Etiquetas/UpdateModel">
-                <input value="@modelo.Id" name="id" hidden>
-                <div class="form-group">
-                    <label for="nome">Nome</label>
-                    <input type="text" class="form-control" id="nome" placeholder="Nome" name="nome" value="@modelo.Nome" required>
+        <form method="post" action="/Etiquetas/UpdateModel" id="editModelForm" novalidate>
+            <input value="@modelo.Id" name="id" hidden>
+            <div class="form-group">
+                <label for="nome">
+                    Nome <span class="text-danger">*</span>
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Nome identificador do modelo de etiqueta"></i>
+                </label>
+                <input type="text" class="form-control" id="nome" placeholder="Nome do modelo" name="nome" value="@modelo.Nome" required>
+                <div class="invalid-feedback">
+                    Nome do modelo é obrigatório.
                 </div>
-                <div class="form-group">
-                    <label for="Papel">Papel</label>
-                    <select class="form-control" id="papel" name="papel" onchange="atualizaTamanhoPapel()">
-                        @if (modelo.Papel == TipoPapel.A4)
-                        {
-                            <option value="0" selected>A4 21,0 x 29,7 cm</option>
-                            <option value="1">Letter 21,6 x 27,9 cm</option>
-                            <option value="2">Outro</option>
-                        }
-                        else if (modelo.Papel == TipoPapel.Letter)
-                        {
-                            <option value="0">A4 21,0 x 29,7 cm</option>
-                            <option value="1" selected>Letter 21,6 x 27,9 cm</option>
-                            <option value="2">Outro</option>
-                        }
-                        else
-                        {
-                            <option value="0">A4 21,0 x 29,7 cm</option>
-                            <option value="1">Letter 21,6 x 27,9 cm</option>
-                            <option value="2" selected>Outro</option>
-                        }
-                    </select>
+            </div>
+            <div class="form-group">
+                <label for="Papel">
+                    Papel <span class="text-danger">*</span>
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Formato do papel: A4 (21,0 x 29,7 cm), Letter (21,6 x 27,9 cm) ou personalizado"></i>
+                </label>
+                <select class="form-control" id="papel" name="papel" onchange="atualizaTamanhoPapel()" required>
+                    @if (modelo.Papel == TipoPapel.A4)
+                    {
+                        <option value="0" selected>A4 21,0 x 29,7 cm</option>
+                        <option value="1">Letter 21,6 x 27,9 cm</option>
+                        <option value="2">Outro</option>
+                    }
+                    else if (modelo.Papel == TipoPapel.Letter)
+                    {
+                        <option value="0">A4 21,0 x 29,7 cm</option>
+                        <option value="1" selected>Letter 21,6 x 27,9 cm</option>
+                        <option value="2">Outro</option>
+                    }
+                    else
+                    {
+                        <option value="0">A4 21,0 x 29,7 cm</option>
+                        <option value="1">Letter 21,6 x 27,9 cm</option>
+                        <option value="2" selected>Outro</option>
+                    }
+                </select>
+                <div class="invalid-feedback">
+                    Tipo de papel é obrigatório.
                 </div>
-                <div class="form-group">
-                    <label for="larguraPapel">Largura do Papel (cm)</label>
-                    <input type="number" class="form-control" id="larguraPapel" placeholder="Largura do Papel (cm)" name="larguraPapel" value="@modelo.LarguraPapel?.ToString("0.00").Replace(",",".")" step="0.01" @(modelo.Papel==TipoPapel.Outro?"":"readonly") min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="larguraPapel">
+                    Largura do Papel (cm) <span class="text-danger">*</span>
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Largura total do papel em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="larguraPapel" placeholder="Largura do papel em cm" name="larguraPapel" value="@modelo.LarguraPapel?.ToString("0.00").Replace(",",".")" step="0.01" min="0.1" @(modelo.Papel==TipoPapel.Outro?"":"readonly") required>
+                <div class="invalid-feedback">
+                    Largura do papel deve ser maior que 0.
                 </div>
-                <div class="form-group">
-                    <label for="alturaPapel">Altura do Papel (cm)</label>
-                    <input type="number" class="form-control" id="alturaPapel" placeholder="Altura do Papel (cm)" name="alturaPapel" value="@modelo.AlturaPapel?.ToString("0.00").Replace(",",".")" step="0.01" @(modelo.Papel==TipoPapel.Outro?"":"readonly") min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="alturaPapel">
+                    Altura do Papel (cm) <span class="text-danger">*</span>
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Altura total do papel em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="alturaPapel" placeholder="Altura do papel em cm" name="alturaPapel" value="@modelo.AlturaPapel?.ToString("0.00").Replace(",",".")" step="0.01" min="0.1" @(modelo.Papel==TipoPapel.Outro?"":"readonly") required>
+                <div class="invalid-feedback">
+                    Altura do papel deve ser maior que 0.
                 </div>
-                <div class="form-group">
-                    <label for="larguraEtiqueta">Largura da Etiqueta (cm)</label>
-                    <input type="number" class="form-control" placeholder="Largura da Etiqueta (cm)" value="@modelo.Largura?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="larguraEtiqueta">
+            </div>
+            <div class="form-group">
+                <label for="larguraEtiqueta">
+                    Largura da Etiqueta (cm) <span class="text-danger">*</span>
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Largura de cada etiqueta individual em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="larguraEtiqueta" placeholder="Largura da etiqueta em cm" value="@(modelo.Largura?.ToString("0.00").Replace(",",".") ?? "1.0")" step="0.01" min="0.01" name="larguraEtiqueta" required>
+                <div class="invalid-feedback">
+                    Largura da etiqueta deve ser um valor positivo.
                 </div>
-                <div class="form-group">
-                    <label for="alturaEtiqueta">Altura da Etiqueta (cm)</label>
-                    <input type="number" class="form-control" placeholder="Altura da Etiqueta (cm)" value="@modelo.Altura?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="alturaEtiqueta">
+            </div>
+            <div class="form-group">
+                <label for="alturaEtiqueta">
+                    Altura da Etiqueta (cm) <span class="text-danger">*</span>
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Altura de cada etiqueta individual em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="alturaEtiqueta" placeholder="Altura da etiqueta em cm" value="@(modelo.Altura?.ToString("0.00").Replace(",",".") ?? "1.0")" step="0.01" min="0.01" name="alturaEtiqueta" required>
+                <div class="invalid-feedback">
+                    Altura da etiqueta deve ser um valor positivo.
                 </div>
-                <div class="form-group">
-                    <label for="espacamentoHorizontal">Espaçamento Horizontal (cm)</label>
-                    <input type="number" class="form-control" placeholder="Espaçamento Horizontal (cm)" value="@modelo.EspacamentoHorizontal?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="espacamentoHorizontal">
+            </div>
+            <div class="form-group">
+                <label for="espacamentoHorizontal">
+                    Espaçamento Horizontal (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Espaço entre etiquetas na horizontal em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="espacamentoHorizontal" placeholder="Espaçamento horizontal em cm" value="@(modelo.EspacamentoHorizontal?.ToString("0.00").Replace(",",".") ?? "0.0")" step="0.01" min="0" name="espacamentoHorizontal">
+                <div class="invalid-feedback">
+                    Espaçamento horizontal deve ser um valor positivo.
                 </div>
-                <div class="form-group">
-                    <label for="espacamentoVertical">Espaçamento Vertical (cm)</label>
-                    <input type="number" class="form-control" placeholder="Espaçamento Vertical (cm)" value="@modelo.EspacamentoVertical?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="espacamentoVertical">
+            </div>
+            <div class="form-group">
+                <label for="espacamentoVertical">
+                    Espaçamento Vertical (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Espaço entre etiquetas na vertical em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="espacamentoVertical" placeholder="Espaçamento vertical em cm" value="@(modelo.EspacamentoVertical?.ToString("0.00").Replace(",",".") ?? "0.0")" step="0.01" min="0" name="espacamentoVertical">
+                <div class="invalid-feedback">
+                    Espaçamento vertical deve ser um valor positivo.
                 </div>
-                <div class="form-group">
-                    <label for="margemEsquerda">Margem Esquerda (cm)</label>
-                    <input type="number" class="form-control" placeholder="Margem Esquerda (cm)" value="@modelo.MargemEsquerda?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="margemEsquerda">
+            </div>
+            <div class="form-group">
+                <label for="margemEsquerda">
+                    Margem Esquerda (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Distância da borda esquerda do papel até a primeira etiqueta"></i>
+                </label>
+                <input type="number" class="form-control" id="margemEsquerda" placeholder="Margem esquerda em cm" value="@(modelo.MargemEsquerda?.ToString("0.00").Replace(",",".") ?? "0.0")" step="0.01" min="0" name="margemEsquerda">
+                <div class="invalid-feedback">
+                    Margem esquerda deve ser um valor positivo.
                 </div>
-                <div class="form-group">
-                    <label for="margemSuperior">Margem Superior (cm)</label>
-                    <input type="number" class="form-control" placeholder="Margem Superior (cm)" value="@modelo.MargemSuperior?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="margemSuperior">
+            </div>
+            <div class="form-group">
+                <label for="margemSuperior">
+                    Margem Superior (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Distância da borda superior do papel até a primeira etiqueta"></i>
+                </label>
+                <input type="number" class="form-control" id="margemSuperior" placeholder="Margem superior em cm" value="@(modelo.MargemSuperior?.ToString("0.00").Replace(",",".") ?? "0.0")" step="0.01" min="0" name="margemSuperior">
+                <div class="invalid-feedback">
+                    Margem superior deve ser um valor positivo.
                 </div>
-                <div class="form-group">
-                    <label for="zoomImpressao">Zoom de Impressão (%)</label>
-                    <input type="number" class="form-control" placeholder="Zoom de Impressão (%)" value="@modelo.ZoomImpressao?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="zoomImpressao">
+            </div>
+            <div class="form-group">
+                <label for="zoomImpressao">
+                    Zoom de Impressão (%)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Ajuste do tamanho da impressão (100 = tamanho real)"></i>
+                </label>
+                <input type="number" class="form-control" id="zoomImpressao" placeholder="Zoom de impressão em %" value="@(modelo.ZoomImpressao?.ToString("0.00").Replace(",",".") ?? "")" step="0.01" min="1" max="500" name="zoomImpressao">
+                <div class="invalid-feedback">
+                    Zoom deve estar entre 1 e 500.
                 </div>
-                <div class="form-group">
-                    <label for="tamanhoFonte">Tamanho da Fonte da Escrita</label>
-                    <input type="number" class="form-control" placeholder="Tamanho da Fonte da Escrita" value="@modelo.TamanhoFonte" step="1" min="0" name="tamanhoFonte">
+            </div>
+            <div class="form-group">
+                <label for="tamanhoFonte">
+                    Tamanho da Fonte da Escrita
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Tamanho da fonte para textos gerais na etiqueta"></i>
+                </label>
+                <input type="number" class="form-control" id="tamanhoFonte" placeholder="Tamanho da fonte para textos" value="@(modelo.TamanhoFonte?.ToString() ?? "")" step="1" min="1" max="72" name="tamanhoFonte">
+                <div class="invalid-feedback">
+                    Tamanho da fonte deve estar entre 1 e 72.
                 </div>
-                <div class="form-group">
-                    <label for="tamanhoPreco">Tamanho da Fonte do Preço</label>
-                    <input type="number" class="form-control" placeholder="Tamanho da Fonte do Preço" value="@modelo.TamanhoPreco" step="1" min="0" name="tamanhoPreco">
+            </div>
+            <div class="form-group">
+                <label for="tamanhoPreco">
+                    Tamanho da Fonte do Preço
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Tamanho da fonte específico para o preço"></i>
+                </label>
+                <input type="number" class="form-control" id="tamanhoPreco" placeholder="Tamanho da fonte para preços" value="@(modelo.TamanhoPreco?.ToString() ?? "")" step="1" min="1" max="72" name="tamanhoPreco">
+                <div class="invalid-feedback">
+                    Tamanho da fonte do preço deve estar entre 1 e 72.
                 </div>
-                <div class="form-group">
-                    <label for="alturaBarras">Altura do Código de Barras (cm)</label>
-                    <input type="number" class="form-control" placeholder="Altura do Código de Barras (cm)" value="@modelo.AlturaEAN?.ToString("0.00").Replace(",",".")" step="0.01" min="0" name="alturaBarras">
+            </div>
+            <div class="form-group">
+                <label for="alturaBarras">
+                    Altura do Código de Barras (cm)
+                    <i class="fas fa-info-circle help-icon" data-bs-toggle="tooltip" title="Altura do código de barras em centímetros"></i>
+                </label>
+                <input type="number" class="form-control" id="alturaBarras" placeholder="Altura do código de barras em cm" value="@(modelo.AlturaEAN?.ToString("0.00").Replace(",",".") ?? "")" step="0.01" min="0" name="alturaBarras">
+                <div class="invalid-feedback">
+                    Altura do código de barras deve ser um valor positivo.
                 </div>
-                <div class="float-end">
-                    <button type="submit" class="btn btn-success">Salvar</button>
-                    <button type="reset" class="btn btn-danger">Limpar</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="float-end">
+                <button type="submit" class="btn btn-success" id="submitBtn">
+                    <span class="btn-text">Salvar</span>
+                    <span class="btn-spinner d-none">
+                        <i class="fas fa-spinner fa-spin"></i> Salvando...
+                    </span>
+                </button>
+                <button type="reset" class="btn btn-danger">Limpar</button>
+            </div>
+        </form>
     </div>
+</div>
 }
 
 <script>
-    function atualizaTamanhoPapel() {
+    // Inicializar tooltips do Bootstrap
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Adicionar validação ao formulário
+        const form = document.getElementById('editModelForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (validateForm()) {
+                // Mostrar indicador de carregamento
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-text').classList.add('d-none');
+                submitBtn.querySelector('.btn-spinner').classList.remove('d-none');
+                
+                // Submeter o formulário
+                form.submit();
+            }
+        });
+
+        // Validação em tempo real
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+            
+            input.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    validateField(this);
+                }
+            });
+        });
+    });
+
+    function validateForm() {
+        const form = document.getElementById('editModelForm');
+        let isValid = true;
+        
+        // Validar campos obrigatórios
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
+        
+        // Validações específicas
+        const nome = document.getElementById('nome');
+        if (nome.value.trim().length < 2) {
+            setFieldInvalid(nome, 'Nome deve ter pelo menos 2 caracteres.');
+            isValid = false;
+        }
+        
+        const larguraPapel = document.getElementById('larguraPapel');
+        if (parseFloat(larguraPapel.value) <= 0) {
+            setFieldInvalid(larguraPapel, 'Largura do papel deve ser maior que 0.');
+            isValid = false;
+        }
+        
+        const alturaPapel = document.getElementById('alturaPapel');
+        if (parseFloat(alturaPapel.value) <= 0) {
+            setFieldInvalid(alturaPapel, 'Altura do papel deve ser maior que 0.');
+            isValid = false;
+        }
+        
+        // Validações específicas para dimensões das etiquetas (obrigatórias se preenchidas)
+        const larguraEtiqueta = document.getElementById('larguraEtiqueta');
+        const larguraEtiquetaValue = parseFloat(larguraEtiqueta.value || '0');
+        if (larguraEtiquetaValue <= 0) {
+            setFieldInvalid(larguraEtiqueta, 'Largura da etiqueta deve ser maior que 0.');
+            isValid = false;
+        }
+        
+        const alturaEtiqueta = document.getElementById('alturaEtiqueta');
+        const alturaEtiquetaValue = parseFloat(alturaEtiqueta.value || '0');
+        if (alturaEtiquetaValue <= 0) {
+            setFieldInvalid(alturaEtiqueta, 'Altura da etiqueta deve ser maior que 0.');
+            isValid = false;
+        }
+        
+        // Validações para outros campos numéricos (opcionais, mas não podem ser negativos se preenchidos)
+        const espacamentoHorizontal = document.getElementById('espacamentoHorizontal');
+        const espacamentoHorizontalValue = parseFloat(espacamentoHorizontal.value || '0');
+        if (espacamentoHorizontal.value && espacamentoHorizontalValue < 0) {
+            setFieldInvalid(espacamentoHorizontal, 'Espaçamento horizontal não pode ser negativo.');
+            isValid = false;
+        }
+        
+        const espacamentoVertical = document.getElementById('espacamentoVertical');
+        const espacamentoVerticalValue = parseFloat(espacamentoVertical.value || '0');
+        if (espacamentoVertical.value && espacamentoVerticalValue < 0) {
+            setFieldInvalid(espacamentoVertical, 'Espaçamento vertical não pode ser negativo.');
+            isValid = false;
+        }
+        
+        const margemEsquerda = document.getElementById('margemEsquerda');
+        const margemEsquerdaValue = parseFloat(margemEsquerda.value || '0');
+        if (margemEsquerda.value && margemEsquerdaValue < 0) {
+            setFieldInvalid(margemEsquerda, 'Margem esquerda não pode ser negativa.');
+            isValid = false;
+        }
+        
+        const margemSuperior = document.getElementById('margemSuperior');
+        const margemSuperiorValue = parseFloat(margemSuperior.value || '0');
+        if (margemSuperior.value && margemSuperiorValue < 0) {
+            setFieldInvalid(margemSuperior, 'Margem superior não pode ser negativa.');
+            isValid = false;
+        }
+        
+        const alturaBarras = document.getElementById('alturaBarras');
+        const alturaBarrasValue = parseFloat(alturaBarras.value || '0');
+        if (alturaBarras.value && alturaBarrasValue < 0) {
+            setFieldInvalid(alturaBarras, 'Altura do código de barras não pode ser negativa.');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    function validateField(field) {
+        const value = field.value.trim();
+        
+        // Verificar se campo obrigatório está preenchido
+        if (field.hasAttribute('required') && !value) {
+            setFieldInvalid(field, field.getAttribute('data-error') || 'Este campo é obrigatório.');
+            return false;
+        }
+        
+        // Validações específicas por tipo
+        if (field.type === 'number' && value) {
+            const numValue = parseFloat(value);
+            const min = parseFloat(field.getAttribute('min'));
+            const max = parseFloat(field.getAttribute('max'));
+            
+            if (isNaN(numValue)) {
+                setFieldInvalid(field, 'Valor deve ser um número válido.');
+                return false;
+            }
+            
+            // Validações específicas para campos de dimensões de etiquetas
+            if (field.id === 'larguraEtiqueta' || field.id === 'alturaEtiqueta') {
+                if (numValue <= 0) {
+                    setFieldInvalid(field, 'Valor deve ser maior que 0.');
+                    return false;
+                }
+            }
+            
+            // Validações para campos que não podem ser negativos
+            if (['espacamentoHorizontal', 'espacamentoVertical', 'margemEsquerda', 'margemSuperior', 'alturaBarras'].includes(field.id)) {
+                if (numValue < 0) {
+                    setFieldInvalid(field, 'Valor não pode ser negativo.');
+                    return false;
+                }
+            }
+            
+            if (min !== null && numValue < min) {
+                setFieldInvalid(field, `Valor deve ser maior ou igual a ${min}.`);
+                return false;
+            }
+            
+            if (max !== null && numValue > max) {
+                setFieldInvalid(field, `Valor deve ser menor ou igual a ${max}.`);
+                return false;
+            }
+        }
+        
+        setFieldValid(field);
+        return true;
+    }
+    
+    function setFieldInvalid(field, message) {
+        field.classList.add('is-invalid');
+        field.classList.remove('is-valid');
+        
+        const feedback = field.parentNode.querySelector('.invalid-feedback');
+        if (feedback) {
+            feedback.textContent = message;
+        }
+    }
+    
+    function setFieldValid(field) {
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+    }
+
+    function atualizaTamanhoPapel(){
         var papel = document.getElementById("papel").value;
         var altura = document.getElementById("alturaPapel");
         var largura = document.getElementById("larguraPapel");
-        switch (papel) {
+        switch(papel){
             case '0':
                 altura.value = 29.7;
-                altura.readonly = true;
+                altura.readOnly = true;
                 largura.value = 21.0;
-                largura.readonly = true;
+                largura.readOnly = true;
                 break;
             case '1':
                 altura.value = 27.9;
-                altura.readonly = true;
+                altura.readOnly = true;
                 largura.value = 21.6;
-                largura.readonly = true;
+                largura.readOnly = true;
                 break;
             case '2':
-                altura.readonly = false;
-                largura.readonly = false;
+                altura.readOnly = false;
+                largura.readOnly = false;
                 break;
         }
+        
+        // Revalidar campos após mudança
+        validateField(altura);
+        validateField(largura);
     }
 </script>

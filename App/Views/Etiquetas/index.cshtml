@@ -660,7 +660,14 @@
         if(!document.getElementById(produtoId)){
             var url = "/Etiquetas/GetProduto";
             $.post(url, { "deposito": deposito, "produto": produtoId }, function (data) {
-                var produto = JSON.parse(data);
+                // Verificar se houve erro
+                if (data.error) {
+                    alert("Erro: " + data.error);
+                    resetAddButton();
+                    return;
+                }
+                
+                var produto = data; // Não precisa de JSON.parse, o jQuery já faz isso automaticamente
                 var row = document.getElementById("Lista-de-itens").insertRow(-1);
                 row.id = produto.Id;
 

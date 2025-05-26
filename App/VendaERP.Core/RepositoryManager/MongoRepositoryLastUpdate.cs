@@ -12,7 +12,7 @@ namespace VendaERP.Core
 {
     public class MongoRepositoryLastUpdate<T> : IRepositoryLastUpdate<T> where T : IEntityLastUpdate
     {
-        private IMongoCollection<T> collection;
+        private IMongoCollection<T> collection = null!;
 
         public IMongoCollection<T> Collection => collection;
 
@@ -40,7 +40,7 @@ namespace VendaERP.Core
         {
             if (typeof(T).IsSubclassOf(typeof(EntityLastUpdate)))
             {
-                this.collection.Find<T>("{_id:ObjectId(\"" + id + "\")}").FirstOrDefault();
+                return this.collection.Find<T>("{_id:ObjectId(\"" + id + "\")}").FirstOrDefault();
             }
 
             return this.collection.Find<T>("{_id:\"" + id + "\"}").FirstOrDefault();
@@ -63,45 +63,44 @@ namespace VendaERP.Core
 
         public T Add(T entity)
         {
-            /*entity.LastUpdate = DateTime.Now;
-            ((IMongoCollection)collection).Insert(entity);*/
+            entity.LastUpdate = DateTime.Now;
+            collection.InsertOne(entity);
             return entity;
         }
 
         public List<T> AddRange(List<T> entities)
         {
-            /*foreach (T entity in entities)
+            foreach (T entity in entities)
             {
-                T current = entity;
-                current.LastUpdate = DateTime.Now;
-                ((IMongoCollection)collection).Insert(current);
-            }*/
-
+                entity.LastUpdate = DateTime.Now;
+            }
+            collection.InsertMany(entities);
             return entities;
         }
 
         public T Update(T entity)
         {
-            /*if (!string.IsNullOrEmpty(entity.Id))
+            if (!string.IsNullOrEmpty(entity.Id))
             {
                 entity.LastUpdate = DateTime.Now;
-                ((IMongoCollection)collection).Save(entity);
-            }*/
-
+                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(entity.Id));
+                collection.ReplaceOne(filter, entity);
+            }
             return entity;
         }
 
         public void Delete(string id)
         {
-
-            /*if (typeof(T).IsSubclassOf(typeof(EntityLastUpdate)))
+            if (typeof(T).IsSubclassOf(typeof(EntityLastUpdate)))
             {
-                collection.Remove(Query.EQ("_id", new ObjectId(id)));
+                var filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+                collection.DeleteOne(filter);
             }
             else
             {
-                collection.Remove(Query.EQ("_id", id));
-            }*/
+                var filter = Builders<T>.Filter.Eq("_id", id);
+                collection.DeleteOne(filter);
+            }
         }
 
         public void Delete(T entity)

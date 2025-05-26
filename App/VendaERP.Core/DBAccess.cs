@@ -22,7 +22,7 @@ namespace VendaERP.Core
     public class DBAccess : IDBAccess, IDisposable
     {
         private IMongoDatabase MongoDatabase;
-        private Hashtable _repositories;
+        private Hashtable _repositories = null!;
         private bool _disposed;
 
         public bool IsReadOnlyConnection { get; set; }
@@ -78,6 +78,22 @@ namespace VendaERP.Core
             var dataBase = dbClient.GetDatabase(dbSettings.Value.DBName);
             MongoDatabase = dataBase;
             CreateHash();
+            
+            // Inicializar repositórios
+            _repositoryEtiquetasPadroes = new MongoRepository<DtoEtiquetasPadroes>(MongoDatabase);
+            _repositoryProduto = new MongoRepositoryLastUpdate<DtoProduto>(MongoDatabase);
+            _repositoryEmpresa = new MongoRepositoryLastUpdate<DtoEmpresa>(MongoDatabase);
+            _repositoryPessoa = new MongoRepositoryLastUpdate<DtoPessoa>(MongoDatabase);
+            _repositoryProdutoTabelaPreco = new MongoRepositoryLastUpdate<DtoProdutoTabela>(MongoDatabase);
+            _repositoryDeposito = new MongoRepositoryLastUpdate<DtoEstoqueDeposito>(MongoDatabase);
+            
+            // Inicializar repositórios com atributos
+            _repositoryEtiquetasPadroesAtributo = new MongoRepository<DtoEtiquetasPadroes>(MongoDatabase);
+            _repositoryProdutoAtributo = new MongoRepositoryLastUpdate<DtoProduto>(MongoDatabase);
+            _repositoryEmpresaAtributo = new MongoRepositoryLastUpdate<DtoEmpresa>(MongoDatabase);
+            _repositoryPessoaAtributo = new MongoRepositoryLastUpdate<DtoPessoa>(MongoDatabase);
+            _repositoryProdutoTabelaPrecoAtributo = new MongoRepositoryLastUpdate<DtoProdutoTabela>(MongoDatabase);
+            _repositoryDepositoAtributo = new MongoRepositoryLastUpdate<DtoEstoqueDeposito>(MongoDatabase);
         }
 
         #endregion
@@ -88,30 +104,36 @@ namespace VendaERP.Core
         {
             CheckDispose();
 
-            var typeId = typeof(T).FullName.GetHashCode();
+            var typeId = typeof(T).FullName?.GetHashCode() ?? 0;
 
             if (!_repositories.ContainsKey(typeId))
             {
-                var repositoryInstance = (MongoRepository<T>)Activator.CreateInstance(typeof(MongoRepository<T>), MongoDatabase);
-                _repositories.Add(typeId, repositoryInstance);
+                var repositoryInstance = (MongoRepository<T>?)Activator.CreateInstance(typeof(MongoRepository<T>), MongoDatabase);
+                if (repositoryInstance != null)
+                {
+                    _repositories.Add(typeId, repositoryInstance);
+                }
             }
 
-            return (MongoRepository<T>)_repositories[typeId];
+            return (MongoRepository<T>)(_repositories[typeId] ?? throw new InvalidOperationException("Repository not found"));
         }
 
         public IRepositoryLastUpdate<T> CreateRepositoryLastUpdate<T>() where T : IEntityLastUpdate
         {
             CheckDispose();
 
-            var typeId = typeof(T).FullName.GetHashCode();
+            var typeId = typeof(T).FullName?.GetHashCode() ?? 0;
 
             if (!_repositories.ContainsKey(typeId))
             {
-                var repositoryInstance = (MongoRepositoryLastUpdate<T>)Activator.CreateInstance(typeof(MongoRepositoryLastUpdate<T>), MongoDatabase);
-                _repositories.Add(typeId, repositoryInstance);
+                var repositoryInstance = (MongoRepositoryLastUpdate<T>?)Activator.CreateInstance(typeof(MongoRepositoryLastUpdate<T>), MongoDatabase);
+                if (repositoryInstance != null)
+                {
+                    _repositories.Add(typeId, repositoryInstance);
+                }
             }
 
-            return (MongoRepositoryLastUpdate<T>)_repositories[typeId];
+            return (MongoRepositoryLastUpdate<T>)(_repositories[typeId] ?? throw new InvalidOperationException("Repository not found"));
         }
 
         public MongoRepository<T> GetRepositoryFromType<T>() where T : IEntity
@@ -142,81 +164,33 @@ namespace VendaERP.Core
         #region Essential Repositories for Label System
 
         // ETIQUETAS
-        public MongoRepository<DtoEtiquetasPadroes> _repositoryEtiquetasPadroes
-        {
-            get
-            {
-                if (_repositoryEtiquetasPadroesAtributo == null)
-                    _repositoryEtiquetasPadroesAtributo = new MongoRepository<DtoEtiquetasPadroes>(MongoDatabase);
-                return _repositoryEtiquetasPadroesAtributo;
-            }
-        }
+        public IRepository<DtoEtiquetasPadroes> _repositoryEtiquetasPadroes = null!;
 
         // PRODUTOS
-        public MongoRepositoryLastUpdate<DtoProduto> _repositoryProduto
-        {
-            get
-            {
-                if (_repositoryProdutoAtributo == null)
-                    _repositoryProdutoAtributo = new MongoRepositoryLastUpdate<DtoProduto>(MongoDatabase);
-                return _repositoryProdutoAtributo;
-            }
-        }
+        public IRepositoryLastUpdate<DtoProduto> _repositoryProduto = null!;
 
         // EMPRESAS
-        public MongoRepositoryLastUpdate<DtoEmpresa> _repositoryEmpresa
-        {
-            get
-            {
-                if (_repositoryEmpresaAtributo == null)
-                    _repositoryEmpresaAtributo = new MongoRepositoryLastUpdate<DtoEmpresa>(MongoDatabase);
-                return _repositoryEmpresaAtributo;
-            }
-        }
+        public IRepositoryLastUpdate<DtoEmpresa> _repositoryEmpresa = null!;
 
         // PESSOAS (Clientes/Fornecedores)
-        public MongoRepositoryLastUpdate<DtoPessoa> _repositoryPessoa
-        {
-            get
-            {
-                if (_repositoryPessoaAtributo == null)
-                    _repositoryPessoaAtributo = new MongoRepositoryLastUpdate<DtoPessoa>(MongoDatabase);
-                return _repositoryPessoaAtributo;
-            }
-        }
+        public IRepositoryLastUpdate<DtoPessoa> _repositoryPessoa = null!;
 
         // TABELA DE PREÇOS
-        public MongoRepositoryLastUpdate<DtoProdutoTabela> _repositoryProdutoTabelaPreco
-        {
-            get
-            {
-                if (_repositoryProdutoTabelaPrecoAtributo == null)
-                    _repositoryProdutoTabelaPrecoAtributo = new MongoRepositoryLastUpdate<DtoProdutoTabela>(MongoDatabase);
-                return _repositoryProdutoTabelaPrecoAtributo;
-            }
-        }
+        public IRepositoryLastUpdate<DtoProdutoTabela> _repositoryProdutoTabelaPreco = null!;
 
         // DEPÓSITOS
-        public MongoRepositoryLastUpdate<DtoEstoqueDeposito> _repositoryDeposito
-        {
-            get
-            {
-                if (_repositoryDepositoAtributo == null)
-                    _repositoryDepositoAtributo = new MongoRepositoryLastUpdate<DtoEstoqueDeposito>(MongoDatabase);
-                return _repositoryDepositoAtributo;
-            }
-        }
+        public IRepositoryLastUpdate<DtoEstoqueDeposito> _repositoryDeposito = null!;
 
         #endregion
 
         #region Private Repository Attributes
 
-        private MongoRepository<DtoEtiquetasPadroes> _repositoryEtiquetasPadroesAtributo;
-        private MongoRepositoryLastUpdate<DtoProduto> _repositoryProdutoAtributo;
-        private MongoRepositoryLastUpdate<DtoEmpresa> _repositoryEmpresaAtributo;
-        private MongoRepositoryLastUpdate<DtoPessoa> _repositoryPessoaAtributo;
-        private MongoRepositoryLastUpdate<DtoProdutoTabela> _repositoryProdutoTabelaPrecoAtributo;
-        private MongoRepositoryLastUpdate<DtoEstoqueDeposito> _repositoryDepositoAtributo;
+        public IRepository<DtoEtiquetasPadroes> _repositoryEtiquetasPadroesAtributo = null!;
+        public IRepositoryLastUpdate<DtoProduto> _repositoryProdutoAtributo = null!;
+        public IRepositoryLastUpdate<DtoEmpresa> _repositoryEmpresaAtributo = null!;
+        public IRepositoryLastUpdate<DtoPessoa> _repositoryPessoaAtributo = null!;
+        public IRepositoryLastUpdate<DtoProdutoTabela> _repositoryProdutoTabelaPrecoAtributo = null!;
+        public IRepositoryLastUpdate<DtoEstoqueDeposito> _repositoryDepositoAtributo = null!;
 
         #endregion
     }

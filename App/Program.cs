@@ -1,11 +1,16 @@
 using VendaERP.Core;
+using App.Services;
+using App.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.Configure<DBSettings>(builder.Configuration.GetSection("MongoConnection"));
 
 builder.Services.AddSingleton<DBAccess>();
+
+// Registrar serviços da aplicação
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IEtiquetasService, EtiquetasService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
